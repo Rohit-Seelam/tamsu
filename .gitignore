@@ -1,0 +1,6 @@
+# Python bytecode from the workflow _scripts
+__pycache__/
+*.py[cod]
+
+# macOS
+.DS_Store

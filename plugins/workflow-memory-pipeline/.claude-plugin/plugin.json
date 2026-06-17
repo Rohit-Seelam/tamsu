@@ -1,0 +1,11 @@
+{
+  "name": "workflow-memory-pipeline",
+  "version": "0.0.0",
+  "description": "RESERVED SLOT (not yet implemented). Will package the SDK memory pipeline: the sole memory writer that runs at every deliver. See README.md for the build plan. Installing this now is a no-op.",
+  "author": {
+    "name": "Rohit Seelam",
+    "email": "rohitseelam09@gmail.com"
+  },
+  "keywords": ["workflow", "memory", "sdk", "pipeline"],
+  "license": "MIT"
+}

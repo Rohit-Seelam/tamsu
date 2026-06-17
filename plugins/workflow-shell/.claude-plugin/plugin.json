@@ -1,0 +1,11 @@
+{
+  "name": "workflow-shell",
+  "version": "0.1.0",
+  "description": "Spec-driven workflow shell: prompt routing, a 6-phase state machine, verifier/fixer loops, a categorized agent tree, and an orchestrator output style. Adopt into any project with /workflow-init.",
+  "author": {
+    "name": "Rohit Seelam",
+    "email": "rohitseelam09@gmail.com"
+  },
+  "keywords": ["workflow", "orchestration", "spec-driven", "agents", "constitution", "phases", "verifier"],
+  "license": "MIT"
+}
