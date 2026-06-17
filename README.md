@@ -62,8 +62,8 @@ For a project that previously got the shell via `cp -R` / `adopt-workflow`:
 
 ## Fate of `adopt-workflow`
 
-`~/.claude/skills/adopt-workflow/SKILL.md` is **deprecated but kept as an offline fallback** (air-gapped
-machines, or where the marketplace isn't reachable). It carries a banner pointing here. Prefer the plugin.
+The old copy-based `~/.claude/skills/adopt-workflow` skill has been **removed** (2026-06-17). This plugin
+fully replaces it — install it and run `/workflow-init` instead.
 
 ## Repo layout
 
