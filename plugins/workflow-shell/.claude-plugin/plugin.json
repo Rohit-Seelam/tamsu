@@ -1,11 +1,31 @@
 {
   "name": "workflow-shell",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Spec-driven workflow shell: prompt routing, a 6-phase state machine, verifier/fixer loops, a categorized agent tree, and an orchestrator output style. Adopt into any project with /workflow-init.",
   "author": {
     "name": "Rohit Seelam",
     "email": "rohitseelam09@gmail.com"
   },
-  "keywords": ["workflow", "orchestration", "spec-driven", "agents", "constitution", "phases", "verifier"],
-  "license": "MIT"
+  "keywords": [
+    "workflow",
+    "orchestration",
+    "spec-driven",
+    "agents",
+    "constitution",
+    "phases",
+    "verifier"
+  ],
+  "license": "MIT",
+  "packagedFrom": {
+    "canonicalRepo": "scratchpad-priv",
+    "commit": "ba26824116a7c3477a1ab1dd15012d304b005067",
+    "committedAt": "2026-06-19T02:00:28+05:30",
+    "canonicalSpec": "054",
+    "packagedAt": "2026-06-26T14:31:38Z",
+    "packagedBy": "scripts/repackage.sh",
+    "options": {
+      "includeStackRules": true,
+      "promoteProtectSecrets": true
+    }
+  }
 }

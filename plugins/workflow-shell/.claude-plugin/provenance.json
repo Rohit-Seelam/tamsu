@@ -1,0 +1,12 @@
+{
+  "canonicalRepo": "scratchpad-priv",
+  "commit": "ba26824116a7c3477a1ab1dd15012d304b005067",
+  "committedAt": "2026-06-19T02:00:28+05:30",
+  "canonicalSpec": "054",
+  "packagedAt": "2026-06-26T14:31:38Z",
+  "packagedBy": "scripts/repackage.sh",
+  "options": {
+    "includeStackRules": true,
+    "promoteProtectSecrets": true
+  }
+}

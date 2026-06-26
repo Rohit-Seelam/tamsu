@@ -89,7 +89,7 @@ After every phase produces an artifact:
 
 ## Team lifecycle in implement
 
-For `feature` / `bugfix` / `refactor` / `spike`, `implement` MUST run as an Agent Team. Lifecycle is per `specs/012-workflow-contract-v2/design/07-team-lifecycle.md` (single source of truth). Your checklist:
+For `feature` / `bugfix` / `refactor` / `spike`, sequential single-author is the default `implement` mode; an Agent Team is a gated opt-in (the gate and default are defined canonically in `workflow/phases.md#teams-in-implement` — do not restate the threshold here). When the gate is met and you run a Team, the lifecycle is per `specs/012-workflow-contract-v2/design/07-team-lifecycle.md` (single source of truth). Your Team checklist (applies only when the opt-in gate is met):
 
 **Implement-start (5 steps):**
 

@@ -28,7 +28,7 @@ On top of the per-type subset, `state.json.complexity` selects a LANE that furth
 | `spec` | user prompt (+ PRD if any) | `spec.md` (per type's template) | `product-manager` | `spec-verifier` | **YES** — lock requirements |
 | `plan` | `spec.md` | `plan.md` | `architect` (for `feature` and `refactor`; see `agents/planning/architect.md`) | `plan-verifier` | no |
 | `tasks` | `plan.md` | `tasks.md` | engineer or task-decomposer | `task-verifier` | **YES** — last chance before code |
-| `implement` | `tasks.md` | code + tests | engineers — **MUST run as an Agent Team** for `feature` / `bugfix` / `refactor` / `spike` (see "Teams in implement" below) | continuous PostToolUse hooks + `qa-engineer` agent † | no |
+| `implement` | `tasks.md` | code + tests | engineers — sequential single-author by default; MAY run as an Agent Team for `feature` / `bugfix` / `refactor` / `spike` only when the gate in "Teams in implement" (`phases.md#teams-in-implement`) is met | continuous PostToolUse hooks + `qa-engineer` agent † | no |
 | `verify` | code + tests | `verification/*.md` reports | `qa-engineer` + cross-check verifier | (terminal verifier) | **YES** — final review |
 | `deliver` | verified artifacts | spec branch pushed + PR to `main` (direct commit only as the no-remote fallback — see "Deliver: branch and PR" / `phases.md#deliver-branch-and-pr`), updated docs, memory pipeline run (see "Deliver: SDK memory pipeline" below) | `orchestrator` | — | (terminal) |
 
@@ -40,7 +40,7 @@ The HITL gate fires *between* phases — after the named phase's verifier passes
 
 ## Teams in implement
 
-For `feature` / `bugfix` / `refactor` / `spike`, the `implement` phase **MUST** run as an Agent Team. `docs` and `prd` stay sequential single-author.
+For `feature` / `bugfix` / `refactor` / `spike`, **sequential single-author is the default** `implement` mode. An Agent Team is the **opt-in exception**, used only when the task set has **≥3 genuinely parallel, file-disjoint tasks** (the parallelizable set the `task-decomposer` already computes); below that threshold the coordination overhead is not justified and the work stays single-author. `docs` and `prd` always stay sequential single-author. This section is the SINGLE canonical home for the default-mode statement and the Team-opt-in threshold (Constitution Rule 7); other docs cite it by `phases.md#teams-in-implement` and do not restate the threshold.
 
 The full lifecycle protocol (5 implement-start steps + 5 implement-end steps + crash recovery + capture cases) lives in `specs/012-workflow-contract-v2/design/07-team-lifecycle.md` — the SINGLE source of truth (Constitution Rule 7). Do NOT duplicate the protocol here.
 

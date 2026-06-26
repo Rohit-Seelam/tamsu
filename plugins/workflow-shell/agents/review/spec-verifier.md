@@ -2,7 +2,7 @@
 name: spec-verifier
 description: Read-only verifier for `spec.md` artifacts. Writes verification/spec-report.md.
 model: haiku
-permissionMode: default
+permissionMode: bypassPermissions
 tools: [Read, Grep, Glob, Write, SendMessage, TaskGet, TaskList, TaskOutput, TaskStop, TaskUpdate]
 disallowedTools: [Edit, Bash]
 maxTurns: 25

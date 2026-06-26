@@ -16,6 +16,7 @@ This folder defines how work gets done in this repo. The orchestrator agent and 
 | `migration.md` | Onboarding guide for adopting `.claude/` shell in an existing project | When bootstrapping into a new repo |
 | `templates/` | `spec.md` / `plan.md` / `tasks.md` templates per workflow type (incl. `spec-docs.md`) | When an agent authors an artifact |
 | `queue.md` | Pending workflow items — slug-based, readiness-bucketed; staging before `active.json` | When user reviews next-steps; when promoting a queued item to a spec |
+| `../dynamic-workflows/shell-audit.md` | The saved, re-invocable `shell-audit` strategic-review mechanism (read-only fan-out over five dimensions; ranked queue-ready findings) | On-demand or on the `rules-review`-paired cadence; see "Recurring strategic review (`shell-audit`)" below |
 
 `communication.md`, `evaluation.md`, `constitution.md`, and `templates/` are second-pass; the four core docs (`README`, `phases`, `routing`, `artifacts`) are authored first.
 
@@ -35,7 +36,7 @@ This split keeps memory's job clean (what was decided and why) and gives plannin
 - **HITL gate** — a phase boundary where the orchestrator must ask the user before advancing. Three exist: `spec→plan` (or `spec→tasks`/`spec→implement` for types that skip plan), `tasks→implement`, `verify→deliver`.
 - **Verifier** — read-only subagent that reviews an artifact after a phase produces it. One per phase. Models default to `haiku` for spec/plan/task verifiers and `sonnet` for cross-checker (per `evaluation.md` "Verifier model defaults").
 - **Fixer** — read-write subagent that addresses verifier findings. Verifier and fixer are always different agents (no self-approval).
-- **Team** — Agent Teams subagents that run concurrently during `implement` for `feature` / `bugfix` / `refactor` / `spike` (MUST). Sequential single-author for `docs` and `prd`. Protocol in `specs/012-workflow-contract-v2/design/07-team-lifecycle.md`.
+- **Team** — Agent Teams subagents that MAY run concurrently during `implement` for `feature` / `bugfix` / `refactor` / `spike` when the gate in `workflow/phases.md#teams-in-implement` is met (sequential single-author is the default). Sequential single-author for `docs` and `prd`. Protocol in `specs/012-workflow-contract-v2/design/07-team-lifecycle.md`.
 - **Orchestrator** — the main session agent (`.claude/agents/orchestrator.md`); coordinates state and delegation, never writes domain code itself.
 - **SDK memory pipeline** — the SOLE memory writer; a `claude-agent-sdk` subprocess that runs at every `deliver`. Not a subagent in the triangle. Contract in `workflow/sdk-pipeline.md`; mirror classification in `workflow/artifacts.md#selective-mirror-policy`.
 - **Autonomous mode** — `state.json.autonomous: true` skips HITL gates. Always-pause events (constitutional violation, max_fix_rounds, BLOCKED, NEEDS_USER, team-crash, teammate `task create`) are not skippable — see `phases.md` Rule B. Off by default.
@@ -66,6 +67,24 @@ Skills are discoverable in `.claude/skills/<category>/<name>/SKILL.md`. Categori
 - `skills/memory/` — `compile`, `extract`, `jsonl-format` (self-updating schema map for session JSONLs; read by the SDK memory pipeline).
 - `skills/research/` — `claude-code-docs-fetch` (owned by `agents/research/claude-code-docs.md`; self-updating docs map).
 - `skills/media/` — domain-specific.
+
+## Recurring strategic review (`shell-audit`)
+
+The `shell-audit` mechanism (`.claude/dynamic-workflows/shell-audit.md`) is a saved, re-invocable **strategic** review of the shell's architecture — distinct from the per-merge `cross-checker` coroutine, which covers tactical drift. It fans out read-only auditors over five dimensions, runs an adversarial skeptic pass, and emits ranked, queue-ready findings. This section is the recurring-use contract; the mechanism's mechanics live in the artifact, not restated here (Rule 7).
+
+**When it runs.** On-demand (the maintainer triggers it directly), AND on a cadence paired with the `rules-review` N-deliver cadence — see `CLAUDE.md` `rules_review_every_n_specs` for the knob and `workflow/phases.md` "Deliver" for where the cadence fires. The cadence value is owned there; this contract does not duplicate it.
+
+**How findings are ranked and filed.** Confirmed findings are ranked by `impact × confidence ÷ effort` (`weak`/`refuted` findings rank last). After a dedupe diff against `workflow/queue.md`, the review emits each finding as a mapped-or-new slug in hand-fileable form. The **orchestrator hand-files** the ranked slugs to `workflow/queue.md` — the review produces text and writes nothing itself (Rule 5).
+
+**Who acts.** The user and orchestrator decide which filed slugs become specs (via single-spec routing or batch intake); the review never promotes a slug on its own.
+
+**Boundaries the review may NOT cross.** The review transports findings; it never decides and never writes. All of the following stay **orchestrator-owned** and are out of the review's reach:
+
+- **HITL gates** — the three phase-boundary pauses; the review never advances a phase.
+- **Rule 6 verdict arbitration** — the skeptic pass is per-dimension and feeds the orchestrator; it never merges verdicts or replaces a phase verifier.
+- **Rule B always-pause events** — constitutional violation, `max_fix_rounds`, BLOCKED/NEEDS_USER, team-crash; the review cannot suppress or trigger them.
+- **Rule 5 memory writes** — the review never writes `memory/` or `agent-memory/`; the SDK pipeline stays the sole memory writer.
+- **`state.json` / `active.json` mutations** — workflow state is orchestrator-owned; the review reads but never mutates it.
 
 ## What is NOT in this folder
 

@@ -1,6 +1,6 @@
 ---
 name: workflow-init
-description: Adopt the workflow-shell contract into THIS project. Seeds CLAUDE.md, active.json, and a blank queue.md, then MERGES settings.json (outputStyle + subagent wiring + secrets deny-list). Idempotent — never clobbers existing files; merges instead of overwriting.
+description: Adopt the workflow-shell contract into THIS project. Seeds CLAUDE.md, active.json, a blank queue.md, and a .workflow-version stamp, then MERGES settings.json (outputStyle + enabledPlugins self-activation + subagent wiring + a broad secrets deny-list). Idempotent — never clobbers existing files; merges/upserts instead of overwriting.
 argument-hint: [project-name]
 allowed-tools: Bash(mkdir:*), Bash(test:*), Bash(jq:*), Bash(python3:*), Bash(basename:*), Bash(printf:*), Bash(command:*), Bash(mktemp:*), Bash(mv:*), Read
 ---
@@ -88,7 +88,7 @@ else echo "kept existing .claude/workflow/queue.md"; fi
 # 4. settings.json — MERGE (deep-merge; union the deny list; never clobber existing keys)
 SETTINGS=.claude/settings.json
 [ -f "$SETTINGS" ] || printf '%s\n' '{}' > "$SETTINGS"
-PATCH='{"outputStyle":"Workflow Orchestrator","subagents":{"orchestrator":{"skills":["workflow-advance","workflow-rollback","workflow-status","workflow-new"]},"product-manager":{"skills":["workflow-advance"]},"task-decomposer":{"skills":["workflow-advance"]}},"permissions":{"deny":["Read(./.env)","Read(./.env.*)","Edit(./.env)","Edit(./.env.*)","Write(./.env)","Write(./.env.*)","Read(./credentials.json)","Read(./service-account*.json)"]}}'
+PATCH='{"outputStyle":"Workflow Orchestrator","enabledPlugins":{"workflow-shell@workflow-shell-marketplace":true},"subagents":{"orchestrator":{"skills":["workflow-advance","workflow-rollback","workflow-status","workflow-new"]},"product-manager":{"skills":["workflow-advance"]},"task-decomposer":{"skills":["workflow-advance"]}},"permissions":{"deny":["Read(./.env)","Read(./.env.*)","Read(**/.env)","Read(**/.env.*)","Edit(./.env)","Edit(./.env.*)","Edit(**/.env)","Edit(**/.env.*)","Write(./.env)","Write(./.env.*)","Write(**/.env)","Write(**/.env.*)","Read(./credentials.json)","Read(**/credentials.json)","Edit(./credentials.json)","Edit(**/credentials.json)","Write(./credentials.json)","Write(**/credentials.json)","Read(./service-account*.json)","Read(**/service-account*.json)","Edit(./service-account*.json)","Edit(**/service-account*.json)","Write(./service-account*.json)","Write(**/service-account*.json)","Read(**/*-key.json)","Edit(**/*-key.json)","Write(**/*-key.json)","Read(**/*.pem)","Edit(**/*.pem)","Write(**/*.pem)","Read(**/*.key)","Edit(**/*.key)","Write(**/*.key)","Read(**/id_rsa)","Read(**/id_dsa)","Read(**/id_ecdsa)","Read(**/id_ed25519)","Edit(**/id_rsa)","Edit(**/id_dsa)","Edit(**/id_ecdsa)","Edit(**/id_ed25519)","Write(**/id_rsa)","Write(**/id_dsa)","Write(**/id_ecdsa)","Write(**/id_ed25519)","Read(**/.aws/**)","Edit(**/.aws/**)","Write(**/.aws/**)","Read(**/.npmrc)","Read(**/.pypirc)"]}}'
 if command -v jq >/dev/null 2>&1; then
   TMP="$(mktemp)"
   jq --argjson p "$PATCH" '. as $o | ($o * $p) | .permissions.deny = ((($o.permissions.deny) // []) + (($p.permissions.deny) // []) | unique)' "$SETTINGS" > "$TMP" && mv "$TMP" "$SETTINGS"
@@ -118,17 +118,77 @@ json.dump(merge(cur, patch), open(path, "w"), indent=2)
 PY
   echo "merged .claude/settings.json (python)"
 fi
+
+# 5. Version stamp — record which workflow-shell version this project was adopted against,
+#    so refresh tooling can later detect installed-vs-adopted drift. Upsert: keep first
+#    adoptedVersion/adoptedAt; always refresh lastInitVersion/lastInitAt.
+STAMP=.claude/workflow/.workflow-version
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
+python3 - "$STAMP" "$PLUGIN_ROOT" <<'PY'
+import json, sys, os, datetime
+stamp, root = sys.argv[1], sys.argv[2]
+now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+ver = "unknown"
+try:
+    with open(os.path.join(root, ".claude-plugin", "plugin.json")) as fh:
+        ver = json.load(fh).get("version", "unknown")
+except Exception:
+    pass
+prev = {}
+try:
+    with open(stamp) as fh:
+        prev = json.load(fh)
+except Exception:
+    pass
+out = {
+    "plugin": "workflow-shell@workflow-shell-marketplace",
+    "adoptedVersion": prev.get("adoptedVersion", ver),
+    "adoptedAt": prev.get("adoptedAt", now),
+    "lastInitVersion": ver,
+    "lastInitAt": now,
+}
+with open(stamp, "w") as fh:
+    json.dump(out, fh, indent=2)
+print("stamped .claude/workflow/.workflow-version (version %s)" % ver)
+PY
 echo "--- done ---"
 ```
 
+> **Two known limits of the settings deny-list** (both owned by other deliverables, not this command):
+> it **cannot gate Bash-arg reads** (`cat .env`) — that needs the `protect-secrets.sh` PreToolUse hook
+> (repackage deliverable); and because `permissions.deny` wins over `allow`, a broad `Read(*)`/`Write(*)`
+> in a project's `settings.local.json` does **not** defeat these entries. The `.env.example`/`.sample`/
+> `.template` allow-list short-circuit is intentionally **not** expressed here (settings `deny` cannot
+> negate) and is deferred to the runtime hook.
+
 After the engine runs:
 
-1. If the user passed a project name argument, offer to replace the `# <basename>` heading and the
-   `<one-line description>` line in `.claude/CLAUDE.md` with it; otherwise tell them to edit those two
-   lines plus the Stack section.
-2. Report what was seeded vs. kept (from the echoes above).
-3. Remind them: the `Workflow Orchestrator` output style binds at session start — run `/clear` (or reopen)
-   to activate it. The SessionStart hook will then inject the contract every session.
-4. Confirm the adapted compliance check passes (see the plugin's `commands/` companion or run the
-   project-side asserts: CLAUDE.md present, active.json valid with 4 arrays, queue.md present,
-   settings.json has `outputStyle: "Workflow Orchestrator"`).
+1. **CLAUDE.md content gate (required).** Read `.claude/CLAUDE.md`. If it still contains the seed
+   placeholders `<one-line description — EDIT THIS>` or `EDIT: languages, frameworks, entry points`,
+   you MUST fill them now: set the one-line description and the `## Stack` section from the project
+   (use the project-name argument for the heading/description if one was passed; otherwise infer the
+   stack from the repo and confirm with the user). Do not report adoption complete while placeholders
+   remain — CLAUDE.md loads into every session, so an unedited template gives the orchestrator zero
+   project signal.
+
+2. **Sweep pre-spec product docs into the queue (offer).** Look for existing product/PRD-stage docs
+   not under the contract (e.g. `*requirements*.md`, `*prd*.md`, `cowork/*.md`, `docs/*roadmap*.md`).
+   For any found, offer to add their slugs to `.claude/workflow/queue.md` under Now/Next/Later so they
+   enter the backlog instead of orphaning. Never move/delete the source docs; only append slugs.
+
+3. Report what was seeded vs. kept (from the echoes above), including the version stamp
+   (`.claude/workflow/.workflow-version` → `lastInitVersion`).
+
+4. Remind them: the `Workflow Orchestrator` output style binds at session start — run `/clear`
+   (or reopen) to activate it. The SessionStart hook then injects the contract every session.
+
+5. **Assert the adoption invariant** (the single check that the contract will actually load):
+   - `.claude/CLAUDE.md` present and de-placeholdered,
+   - `.claude/active.json` valid with the 4 arrays `{active,queued,archived,prds}`,
+   - `.claude/workflow/queue.md` present,
+   - `.claude/workflow/.workflow-version` present,
+   - `.claude/settings.json` has `outputStyle: "Workflow Orchestrator"`,
+   - `.claude/settings.json` has `enabledPlugins["workflow-shell@workflow-shell-marketplace"] = true`,
+   - `.claude/settings.json` `permissions.deny` includes the secret patterns.
+   If `enabledPlugins` is not set, the SessionStart hook never fires (active.json gate is moot) —
+   the patch in step 4 now sets it, but verify it merged.

@@ -2,7 +2,7 @@
 name: task-verifier
 description: Read-only verifier for `tasks.md` artifacts. Writes verification/tasks-report.md.
 model: haiku
-permissionMode: default
+permissionMode: bypassPermissions
 tools: [Read, Grep, Glob, Write, SendMessage, TaskGet, TaskList, TaskOutput, TaskStop, TaskUpdate]
 disallowedTools: [Edit, Bash]
 maxTurns: 25

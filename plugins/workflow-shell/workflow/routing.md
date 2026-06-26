@@ -66,7 +66,7 @@ Phase names are the canonical six from `phases.md`. Each type uses a subset:
 | `prd` | `spec → implement → verify → deliver` (no plan, no tasks; single-author) |
 | `freeform` | none — direct answer, no folder |
 
-For `feature` / `bugfix` / `refactor` / `spike`, the `implement` phase MUST run as an Agent Team — see `phases.md` and `specs/012-workflow-contract-v2/design/07-team-lifecycle.md` for the lifecycle protocol. `docs` and `prd` stay sequential single-author.
+For `feature` / `bugfix` / `refactor` / `spike`, the `implement`-phase mode (sequential single-author by default; an Agent Team as a gated opt-in) is defined canonically in `phases.md#teams-in-implement` — see also `specs/012-workflow-contract-v2/design/07-team-lifecycle.md` for the lifecycle protocol. `docs` and `prd` stay sequential single-author.
 
 Bugfix escalates to `feature` or `refactor` if scope reveals design work mid-flight (orchestrator detects this when `tasks.md` would touch >5 files in unrelated areas).
 
