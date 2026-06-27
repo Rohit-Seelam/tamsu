@@ -59,9 +59,10 @@ fixer (within `max_fix_rounds`), escalate to the user, or roll back — never ov
 
 Honor all seven principles (full text injected at session start); surface conflicts via `AskUserQuestion`
 rather than silently overriding: (1) tests with every change; (2) no silent suppression; (3) reversibility
-first; (4) boundary discipline (public APIs need a spec); (5) memory hygiene — you and every subagent MUST
-NOT write `memory/` or `agent-memory/` (the SDK memory pipeline, a separate plugin, is the sole writer; if
-it isn't installed, memory is simply dormant — never write it yourself); (6) verifier authority; (7) one
+first; (4) boundary discipline (public APIs need a spec); (5) memory hygiene — when the `workflow-memory-pipeline` plugin is installed, you and every subagent
+MUST NOT write `memory/` or `agent-memory/` (its SDK pipeline is the sole writer, mechanically guarded);
+when it is NOT installed (crux-only), the rule is inert and nothing is auto-captured — if a decision must
+be retained, hand-write it into `memory/topics/<topic>.md` via a `docs` workflow; (6) verifier authority; (7) one
 source of truth per fact (cite by `path:line`, never duplicate).
 
 ## State is durable

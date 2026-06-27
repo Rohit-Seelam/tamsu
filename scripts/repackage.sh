@@ -93,6 +93,12 @@ for sub in agents templates constitution.md workflow rules skills dynamic-workfl
 done
 cp -R "$STAGE/." "$DST/"
 
+### Crux-only contract conditionalization (Deliverable 4 — post-copy transform) ---
+# Canonical docs are copied verbatim above; this rewrites them in the plugin so a crux-only
+# install (no workflow-memory-pipeline plugin) stops asserting a memory pipeline/guard hook
+# it does not ship. Canonical is never touched; this re-applies every cut.
+python3 "$LIB/conditionalize_crux.py" "$DST"
+
 ### Unmapped report (allow-list residue) --------------------------------------
 python3 "$LIB/report_unmapped.py" "$SRC" "$DST" || true
 

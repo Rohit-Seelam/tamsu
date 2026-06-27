@@ -134,7 +134,7 @@ See `specs/012-workflow-contract-v2/design/01-prd-workflow-type.md` for the full
 
 ## Classification mechanics
 
-1. Orchestrator reads the cleaned prompt + relevant context (`active.json`, `constitution.md`, top-200 of `memory/MEMORY.md`).
+1. Orchestrator reads the cleaned prompt + relevant context (`active.json`, `constitution.md`, and — if present — the top-200 lines of the canonical `~/.claude/projects/<slug>/memory/MEMORY.md`). That index is populated only when the `workflow-memory-pipeline` plugin is installed; in a crux-only install it may be empty or absent and is simply skipped.
 2. **Batch-intake branch.** If `.claude/hooks/detect_batch_intent.py`'s `detect_batch_intent(prompt)` returns `True`, divert to the orchestrator's "Batch intake" subsection (see `agents/orchestrator.md`) instead of single-spec routing. The heuristic is defined in `specs/024-batch-spec-planning/design/01-detection-heuristic.md`. PRD-shape prompts are explicitly refused at the batch-intake handler.
 3. If classification confidence is high (≥80%) → assign type, create folder, set initial `state.json`.
 4. If ambiguous → spawn `requirement-analyzer` subagent (under `.claude/agents/product/`). It returns deterministic JSON:

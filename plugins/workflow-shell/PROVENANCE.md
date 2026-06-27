@@ -6,11 +6,11 @@ This plugin is **generated** from the canonical contract by `scripts/repackage.s
 |---|---|
 | Plugin version | 0.2.0 |
 | Canonical repo | scratchpad-priv |
-| Canonical commit | `ba26824116a7c3477a1ab1dd15012d304b005067` |
-| Committed at | 2026-06-19T02:00:28+05:30 |
+| Canonical commit | `95de31e7bab9f72e87cc067b5368176d2d976db9` |
+| Committed at | 2026-06-26T20:20:59+05:30 |
 | Canonical spec | 054 |
-| Packaged at | 2026-06-26T14:31:38Z |
-| HEAD subject | Merge pull request #5 from Rohit-Seelam/053-verifier-permission-mode |
+| Packaged at | 2026-06-26T14:54:18Z |
+| HEAD subject | [054-team-mandate-demotion] Demote implement-as-Team from MUST to gated MAY |
 | includeStackRules | true |
 | promoteProtectSecrets | true |
 
