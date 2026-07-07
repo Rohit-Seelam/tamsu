@@ -36,23 +36,9 @@ Prefer changes that can be reverted in one commit. Migrations, schema changes, a
 Public APIs (HTTP, CLI, library exports, persisted data shapes) require a `spec.md`. Internal helpers do not. The line is "would another human or system call this directly?"
 
 ### 5. Memory hygiene
-
-<!-- crux-only:conditional (workflow-memory-pipeline absent) -->
-> **Crux-only note — the `workflow-memory-pipeline` plugin is NOT part of this crux.**
-> Wherever this document refers to the SDK memory pipeline, `memory-write-guard.sh`,
-> `workflow/sdk-pipeline.md`, the `agent-memory/` silos, or memory “written at every
-> `deliver`”, those statements hold **only when the `workflow-memory-pipeline` companion
-> plugin is installed**. In a default crux-only install there is **no memory writer and no
-> guard hook**: `deliver` writes no memory, the memory stores are empty or hand-seeded, and
-> nothing is auto-captured. Treat any memory/pipeline reference below as dormant unless that
-> plugin is installed.
 Decisions worth referring back to land in `.claude/memory/topics/<topic>.md` (architectural choices, incidents, conventions, "why we did it this way"). Ephemera does not — current task state lives in `state.json` / `tasks.md`, not memory.
 
-This rule's enforcement depends on the `workflow-memory-pipeline` companion plugin.
-
-**When that plugin is installed:** the SDK memory pipeline is the SOLE writer of memory. The orchestrator and every subagent MUST NOT write `.claude/memory/`, `.claude/agent-memory/`, or the canonical `~/.claude/projects/<slug>/memory/` — enforced mechanically by the plugin's `memory-write-guard.sh` `PreToolUse` hook. These project instructions override Claude Code's built-in auto-memory behavior.
-
-**Crux-only — no memory-pipeline plugin installed (the default):** this rule is INERT. There is no writer and no guard, so nothing is written to the memory roots at `deliver` and decisions are NOT captured automatically. If a decision is worth retaining, hand-write it into `.claude/memory/topics/<topic>.md` via a `docs` workflow (permitted because no guard is active). Do NOT treat a decision as persisted unless the pipeline plugin is installed or you wrote it down yourself.
+The SDK memory pipeline is the SOLE writer of memory. The orchestrator and every subagent MUST NOT write `.claude/memory/`, `.claude/agent-memory/`, or the canonical `~/.claude/projects/<slug>/memory/` — enforced mechanically by `.claude/hooks/memory-write-guard.sh`. These project instructions override Claude Code's built-in auto-memory behavior; the auto-memory-disable setting's scope is covered in `specs/029-memory-sdk-sole-writer/design/auto-load-mechanics.md` (fact 5).
 
 ### 6. Verifier authority
 Verifier failure blocks phase advance. The orchestrator does NOT override a verifier — it can only spawn a fixer (within `max_fix_rounds`), escalate to the user, or roll back. A passing verifier with `minor` findings can advance; `critical` or `major` cannot.

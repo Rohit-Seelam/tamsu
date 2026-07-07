@@ -1,0 +1,116 @@
+{
+  "last_fetched": "2026-06-17T00:00:00Z",
+  "claude_version": "2.1.179",
+  "primary_url": "https://docs.claude.com/llms-full.txt",
+  "fallback_url": "https://docs.claude.com/",
+  "canonical_base": "https://code.claude.com/docs/en/",
+  "redirect_note": "docs.claude.com -> code.claude.com (301); primary llms-full.txt -> platform.claude.com/llms-full.txt (301, too large to parse). All live pages confirmed under code.claude.com/docs/en/",
+  "pages": [
+    {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "title": "Create custom subagents",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/worktrees",
+      "title": "Run parallel sessions with worktrees",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/agent-teams",
+      "title": "Orchestrate teams of Claude Code sessions",
+      "section": "claude-code-experimental",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/tools-reference",
+      "title": "Tools reference",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "title": "Hooks",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/settings",
+      "title": "Settings",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/memory",
+      "title": "Memory",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/skills",
+      "title": "Skills",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "title": "MCP",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "title": "Permissions",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/cli-reference",
+      "title": "CLI reference",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/agent-view",
+      "title": "Background agents",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/sessions",
+      "title": "Manage sessions",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/desktop",
+      "title": "Desktop app",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/agents",
+      "title": "Run agents in parallel",
+      "section": "claude-code",
+      "last_seen": "2026-05-31T00:00:00Z"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/workflows",
+      "title": "Orchestrate subagents at scale with dynamic workflows",
+      "section": "claude-code",
+      "last_seen": "2026-06-17T00:00:00Z"
+    }
+  ],
+  "last_delta": {
+    "new_pages": [
+      "https://code.claude.com/docs/en/workflows"
+    ],
+    "removed_pages": [],
+    "version_bumped": [
+      "claude-version: 2.1.158 -> 2.1.179 (confirmed live 2026-06-17)"
+    ]
+  },
+  "notes": "Updated 2026-05-31 by claude-code-docs agent. Canonical domain migrated: docs.claude.com -> code.claude.com. Primary llms-full.txt redirected to platform.claude.com (too large). Worktrees page is new since seed date (2026-05-09). Claude version 2.1.158 confirmed live on this machine. | 2026-06-17 update by claude-code-docs agent (T1.1 probe): workflows page added; claude version bumped 2.1.158->2.1.179."
+}

@@ -4,14 +4,14 @@ This plugin is **generated** from the canonical contract by `scripts/repackage.s
 
 | Field | Value |
 |---|---|
-| Plugin version | 0.2.0 |
+| Plugin version | 0.3.0 |
 | Canonical repo | scratchpad-priv |
-| Canonical commit | `95de31e7bab9f72e87cc067b5368176d2d976db9` |
-| Committed at | 2026-06-26T20:20:59+05:30 |
-| Canonical spec | 054 |
-| Packaged at | 2026-06-26T14:54:18Z |
-| HEAD subject | [054-team-mandate-demotion] Demote implement-as-Team from MUST to gated MAY |
+| Canonical commit | `694e3d1a19737c8d04c94914d43659b42af7ac76` |
+| Committed at | 2026-06-28T15:30:37+05:30 |
+| Canonical spec | 055 |
+| Packaged at | 2026-06-28T11:16:44Z |
+| HEAD subject | Merge pull request #10 from Rohit-Seelam/routine/shell-audit-20260628-pr8 |
 | includeStackRules | true |
-| promoteProtectSecrets | true |
+| promoteProtectSecrets | false |
 
 Regenerate with `scripts/repackage.sh` (or `make repackage`). Check drift against canonical with `scripts/check-drift.sh` (or `make doctor`).

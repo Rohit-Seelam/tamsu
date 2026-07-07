@@ -1,15 +1,5 @@
 # Workflow
 
-<!-- crux-only:conditional (workflow-memory-pipeline absent) -->
-> **Crux-only note — the `workflow-memory-pipeline` plugin is NOT part of this crux.**
-> Wherever this document refers to the SDK memory pipeline, `memory-write-guard.sh`,
-> `workflow/sdk-pipeline.md`, the `agent-memory/` silos, or memory “written at every
-> `deliver`”, those statements hold **only when the `workflow-memory-pipeline` companion
-> plugin is installed**. In a default crux-only install there is **no memory writer and no
-> guard hook**: `deliver` writes no memory, the memory stores are empty or hand-seeded, and
-> nothing is auto-captured. Treat any memory/pipeline reference below as dormant unless that
-> plugin is installed.
-
 This folder defines how work gets done in this repo. The orchestrator agent and every subagent reads it. `CLAUDE.md` imports `README.md` and `constitution.md` so they auto-load every session; the rest loads on demand.
 
 ## Files

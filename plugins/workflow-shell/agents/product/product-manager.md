@@ -11,9 +11,9 @@ color: gold
 ---
 
 > **Plugin path resolution (workflow-shell).** This agent ships in the `workflow-shell` plugin; the project does not contain these files. Resolve shorthand references below as:
-> - Contract docs `workflow/<doc>.md` (README, phases, routing, artifacts, communication, evaluation, migration), `constitution.md`, `rules/<x>.md`, the `workflow/templates/`, and sibling agents `agents/<cat>/<name>.md` → **`${CLAUDE_PLUGIN_ROOT}/...`** (bundled here; read them from there).
-> - Project state — `active.json`, `specs/<NNN>/…`, `state.json`, `.claude/workflow/queue.md`, `memory/`, `agent-memory/` → under the **project's `.claude/`** (cwd), seeded by `/workflow-init`. `queue.md` is project-side, NOT the plugin's `workflow/`.
-> - References to `.claude/hooks/*` scripts and `specs/NNN/design/*` belong to the optional `workflow-memory-pipeline` plugin and are **dormant** in a crux-only install.
+> - Contract docs `workflow/<doc>.md` (README, phases, routing, artifacts, communication, evaluation, migration, sdk-pipeline), `constitution.md`, `rules/<x>.md`, the `workflow/templates/`, and sibling agents `agents/<cat>/<name>.md` → **`${CLAUDE_PLUGIN_ROOT}/...`** (bundled here; read them from there).
+> - Hook scripts `.claude/hooks/<x>` → **`${CLAUDE_PLUGIN_ROOT}/hooks/...`** (shipped here). The event-driven hooks are configured in the plugin's `hooks.json`; the SDK memory pipeline (`sdk-memory-pipeline.sh`) is NOT a settings hook — the orchestrator invokes it directly at `deliver`.
+> - Project state — `active.json`, `specs/<NNN>/…` (incl. `design/*`), `state.json`, `.claude/workflow/queue.md`, `memory/`, `agent-memory/` → under the **project's `.claude/`** (cwd), seeded by `/workflow-init`. `queue.md` is project-side, NOT the plugin's `workflow/`.
 
 
 # Product Manager

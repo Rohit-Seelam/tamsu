@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "workflow-shell-marketplace",
-  "description": "Rohit's spec-driven workflow shell and its optional SDK memory pipeline, distributed as installable Claude Code plugins.",
+  "description": "Rohit's spec-driven workflow shell (with the SDK memory pipeline merged in) and a drift reconciler, distributed as installable Claude Code plugins.",
   "owner": {
     "name": "Rohit Seelam",
     "email": "rohitseelam09@gmail.com"
@@ -9,14 +9,14 @@
   "plugins": [
     {
       "name": "workflow-shell",
-      "description": "The crux: routing, 6-phase state machine, verifier/fixer loops, categorized agent tree, workflow skills, and the Workflow Orchestrator output style. Per-project adoption via /workflow-init.",
+      "description": "Routing, a 6-phase state machine, verifier/fixer loops, a categorized agent tree, workflow skills, the Workflow Orchestrator output style, and the SDK memory pipeline + full hook surface. Per-project adoption via /workflow-init.",
       "source": "./plugins/workflow-shell",
       "category": "workflow"
     },
     {
-      "name": "workflow-memory-pipeline",
-      "description": "Optional companion: the SDK memory pipeline (sole memory writer at deliver). Reserved slot — see plugins/workflow-memory-pipeline/README.md for the build plan. The crux plugin works without it.",
-      "source": "./plugins/workflow-memory-pipeline",
+      "name": "workflow-refresh",
+      "description": "Drift reconciler: detect & repair divergence between an adopted project and the currently installed workflow-shell. Dry-run first, then /workflow-refresh --apply. Idempotent; never clobbers project-owned state. Does not adopt (use /workflow-init).",
+      "source": "./plugins/workflow-refresh",
       "category": "workflow"
     }
   ]

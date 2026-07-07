@@ -8,7 +8,7 @@ paths: [db/migrations/**]
 
 ## Forward-only
 
-We do not write down migrations. (This line is the decision of record; a longer rationale lives in `memory/topics/conventions.md` only when the memory store is populated — i.e. with the `workflow-memory-pipeline` plugin installed.)
+We do not write down migrations (decided 2026 — see `memory/topics/conventions.md`).
 
 ## Naming
 

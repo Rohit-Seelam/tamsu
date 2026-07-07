@@ -1,15 +1,5 @@
 # Evaluation
 
-<!-- crux-only:conditional (workflow-memory-pipeline absent) -->
-> **Crux-only note — the `workflow-memory-pipeline` plugin is NOT part of this crux.**
-> Wherever this document refers to the SDK memory pipeline, `memory-write-guard.sh`,
-> `workflow/sdk-pipeline.md`, the `agent-memory/` silos, or memory “written at every
-> `deliver`”, those statements hold **only when the `workflow-memory-pipeline` companion
-> plugin is installed**. In a default crux-only install there is **no memory writer and no
-> guard hook**: `deliver` writes no memory, the memory stores are empty or hand-seeded, and
-> nothing is auto-captured. Treat any memory/pipeline reference below as dormant unless that
-> plugin is installed.
-
 How verification works. The single highest-leverage thing in the workflow — verification is what catches bad output before it becomes bad code.
 
 ## Two roles
@@ -229,7 +219,7 @@ The verifier on the next round MUST address each disputed finding — either acc
 
 ## Verifier independence guard
 
-A verifier agent file MUST NOT also appear in any phase's actor or fixer slot. If you find yourself wanting to reuse an agent across roles, split it into two agent files with different `permissionMode` (verifier: `default` with read-only tools; fixer: `default` with full tools). The split is the whole point.
+A verifier agent file MUST NOT also appear in any phase's actor or fixer slot. If you find yourself wanting to reuse an agent across roles, split it into two agent files with different tool allowlists (verifier: read-only tools; fixer: full tools). The split is the whole point.
 
 ## Renames and downstream cleanup
 
