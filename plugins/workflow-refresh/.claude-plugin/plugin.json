@@ -1,0 +1,18 @@
+{
+  "name": "workflow-refresh",
+  "version": "0.1.0",
+  "description": "Detect and repair drift between an adopted project's .claude/ and the currently installed workflow-shell plugin. Dry-run by default; idempotent; never clobbers project-owned state. Does not adopt (use /workflow-init).",
+  "author": {
+    "name": "Rohit Seelam",
+    "email": "rohitseelam09@gmail.com"
+  },
+  "keywords": [
+    "workflow",
+    "refresh",
+    "drift",
+    "reconcile",
+    "adoption",
+    "upgrade"
+  ],
+  "license": "MIT"
+}

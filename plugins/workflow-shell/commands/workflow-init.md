@@ -140,13 +140,14 @@ try:
         prev = json.load(fh)
 except Exception:
     pass
-out = {
-    "plugin": "workflow-shell@workflow-shell-marketplace",
-    "adoptedVersion": prev.get("adoptedVersion", ver),
-    "adoptedAt": prev.get("adoptedAt", now),
-    "lastInitVersion": ver,
-    "lastInitAt": now,
-}
+# Preserve-merge: start from prev so any keys workflow-refresh owns (refreshedVersion, refreshedSha,
+# sourceCommit, rulesApplied, ...) survive a re-init. init only OWNS the four keys it sets below.
+out = dict(prev)
+out["plugin"] = "workflow-shell@workflow-shell-marketplace"
+out.setdefault("adoptedVersion", ver)
+out.setdefault("adoptedAt", now)
+out["lastInitVersion"] = ver
+out["lastInitAt"] = now
 with open(stamp, "w") as fh:
     json.dump(out, fh, indent=2)
 print("stamped .claude/workflow/.workflow-version (version %s)" % ver)

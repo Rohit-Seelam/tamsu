@@ -1,0 +1,27 @@
+# Plugin-owned relative paths (under a project's .claude/) that are STALE copies if found.
+# A copy-adopted legacy project duplicated these; the plugin now provides them, so a project
+# copy is a second source of truth. R-COPY removes a copy ONLY if it byte-matches the installed
+# plugin's file; divergent copies and whole directories are reported as manual, never auto-deleted.
+#
+# Project-OWNED paths are deliberately ABSENT here and never touched:
+#   CLAUDE.md, active.json, workflow/queue.md, settings.json, settings.local.json,
+#   specs/**, workflow/.workflow-version
+constitution.md
+workflow/README.md
+workflow/phases.md
+workflow/routing.md
+workflow/artifacts.md
+workflow/communication.md
+workflow/evaluation.md
+workflow/migration.md
+workflow/templates
+agents
+rules
+skills/workflow
+skills/workflow-advance
+skills/workflow-new
+skills/workflow-rollback
+skills/workflow-rules-review
+skills/workflow-status
+output-styles
+dynamic-workflows

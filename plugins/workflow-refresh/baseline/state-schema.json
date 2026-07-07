@@ -1,0 +1,27 @@
+{
+  "_comment": "Required keys for a current specs/<NNN>/state.json, derived from canonical state files. R-STATE (opt-in --migrate-state) ADDS missing keys non-destructively and never drops user fields. 'complexity'/'completed'/'parent_prd' are valid optional keys, NOT legacy. Only 'created' is a legacy alias (of 'started').",
+  "required": [
+    "id",
+    "type",
+    "phase",
+    "status",
+    "autonomous",
+    "started",
+    "active",
+    "tags",
+    "phase_history",
+    "max_fix_rounds"
+  ],
+  "optional": ["completed", "complexity", "parent_prd", "slug"],
+  "legacyMap": {
+    "created": "started"
+  },
+  "defaults": {
+    "active": false,
+    "autonomous": false,
+    "tags": [],
+    "phase_history": [],
+    "max_fix_rounds": 3,
+    "status": "unknown"
+  }
+}
