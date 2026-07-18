@@ -39,8 +39,43 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+# Path resolution (env-aware, plugin-portable — spec: workflow-shell 0.4.0 runtime port).
+#   REPO_ROOT   = the PROJECT whose memory is written. $CLAUDE_PROJECT_DIR when the harness provides
+#                 it; else the historical two-levels-up (true when this file lives at
+#                 <repo>/.claude/hooks/); else cwd (the launcher cd's to the project root).
+#   ASSET_ROOT  = where the read-only contract assets live (workflow docs, constitution, agents,
+#                 memory-skill prompts, settings.sdk-memory.json). Canonical: same as CLAUDE_ROOT.
+#                 Plugin install: the plugin root ($CLAUDE_PLUGIN_ROOT, else derived from our own
+#                 location — <plugin>/hooks/ → parent).
+_HOOKS_DIR = Path(__file__).resolve().parent
+_CANONICAL_LAYOUT = _HOOKS_DIR.parent.name == ".claude"
+if os.environ.get("CLAUDE_PROJECT_DIR"):
+    REPO_ROOT = Path(os.environ["CLAUDE_PROJECT_DIR"]).resolve()
+elif _CANONICAL_LAYOUT:
+    REPO_ROOT = _HOOKS_DIR.parent.parent
+else:
+    REPO_ROOT = Path.cwd()
 CLAUDE_ROOT = REPO_ROOT / ".claude"
+if os.environ.get("CLAUDE_PLUGIN_ROOT"):
+    ASSET_ROOT = Path(os.environ["CLAUDE_PLUGIN_ROOT"]).resolve()
+elif _CANONICAL_LAYOUT:
+    ASSET_ROOT = CLAUDE_ROOT
+else:
+    ASSET_ROOT = _HOOKS_DIR.parent
+
+
+def _asset(rel_canonical, rel_plugin=None):
+    """Resolve a read-only contract asset. Project-side copy wins (lets a project override,
+    and keeps append-targets like extraction-learnings out of the plugin cache); else the
+    ASSET_ROOT copy (plugin layout may flatten — pass rel_plugin); else the canonical path so
+    a missing asset raises loudly at the read site (Rule 2, no silent fallback)."""
+    cand = CLAUDE_ROOT / rel_canonical
+    if cand.exists():
+        return cand
+    alt = ASSET_ROOT / (rel_plugin or rel_canonical)
+    if alt.exists():
+        return alt
+    return cand
 
 # Dedicated post-write exit: the writer reported a silo path that is ABSENT from
 # the auto-load location (spec 047 AC-2). A run-failure (terminal) so the silent
@@ -185,11 +220,14 @@ def _build_workflow_files() -> list[Path]:
         "communication.md",
         "evaluation.md",
     ):
-        files.append(CLAUDE_ROOT / "workflow" / fname)
-    files.append(CLAUDE_ROOT / "constitution.md")
-    files.extend(sorted((CLAUDE_ROOT / "agents").rglob("*.md")))
-    files.append(CLAUDE_ROOT / "skills" / "memory" / "jsonl-format" / "SKILL.md")
-    files.append(CLAUDE_ROOT / "skills" / "memory" / "extraction-learnings" / "SKILL.md")
+        files.append(_asset(f"workflow/{fname}"))
+    files.append(_asset("constitution.md"))
+    agents_dir = (CLAUDE_ROOT / "agents") if (CLAUDE_ROOT / "agents").is_dir() else (ASSET_ROOT / "agents")
+    files.extend(sorted(agents_dir.rglob("*.md")))
+    files.append(_asset("skills/memory/jsonl-format/SKILL.md",
+                        "skills/memory-jsonl-format/SKILL.md"))
+    files.append(_asset("skills/memory/extraction-learnings/SKILL.md",
+                        "skills/memory-extraction-learnings/SKILL.md"))
     return files
 
 
@@ -217,7 +255,12 @@ def _workflow_system_prompt() -> str:
     # Stable workflow-doc bundle for the cacheable system-prompt prefix (research:65, plan M2).
     sections: list[str] = []
     for source in WORKFLOW_FILES:
-        rel = source.relative_to(REPO_ROOT)
+        try:
+            rel = source.relative_to(REPO_ROOT)
+        except ValueError:
+            # Asset resolved from the plugin root (adopted-project install) — label it by its
+            # plugin-relative path so the prompt heading stays stable across cache locations.
+            rel = source.relative_to(ASSET_ROOT)
         sections.append(f"## {rel}\n\n{_read_file(source)}")
     return "\n\n".join(sections)
 
@@ -839,7 +882,7 @@ def _build_agent_options(
             "exclude_dynamic_sections": True,
         },
         setting_sources=["project"],
-        settings=str(CLAUDE_ROOT / "settings.sdk-memory.json"),
+        settings=str(_asset("settings.sdk-memory.json")),
         add_dirs=[canonical_memory_dir],
         model=model_name,
         max_turns=max_turns,

@@ -1,9 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# Path resolution (env-aware, plugin-portable):
+#   REPO_ROOT    = the PROJECT the pipeline writes memory FOR. $CLAUDE_PROJECT_DIR when the harness
+#                  provides it; else the historical two-levels-up (true when this file lives at
+#                  <repo>/.claude/hooks/); else $PWD (orchestrator runs us with cwd = project root).
+#   ENTRY_SCRIPT = always our sibling sdk_memory_pipeline.py (location-independent — works from
+#                  canonical .claude/hooks/ AND from the plugin's hooks/).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -n "${CLAUDE_PROJECT_DIR:-}" ]; then
+    REPO_ROOT="$(cd "${CLAUDE_PROJECT_DIR}" && pwd)"
+elif [[ "${SCRIPT_DIR}" == */.claude/hooks ]]; then
+    REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+else
+    REPO_ROOT="$(pwd)"
+fi
 VENV_PYTHON="${REPO_ROOT}/.claude/.venv/bin/python"
-ENTRY_SCRIPT="${REPO_ROOT}/.claude/hooks/sdk_memory_pipeline.py"
+ENTRY_SCRIPT="${SCRIPT_DIR}/sdk_memory_pipeline.py"
 LOCK_DIR="${REPO_ROOT}/.claude/sessions"
 LOCK_FILE="${LOCK_DIR}/.sdk-memory.lock"
 # LOG_DIR holds the run logs AND the gitignored spend markers (_last-run.json,

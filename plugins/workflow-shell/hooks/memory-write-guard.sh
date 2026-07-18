@@ -19,6 +19,16 @@
 set -euo pipefail
 
 INPUT=$(cat)
+
+# Security guard ⇒ fail CLOSED: without jq we cannot parse the tool call, so we cannot prove the
+# write is safe. Blocking with a clear remedy beats silently waving every memory write through
+# (exit 127 would fail OPEN — the one failure mode a sole-writer guard must not have).
+if ! command -v jq >/dev/null 2>&1; then
+  printf 'BLOCKED by memory-write-guard.sh — jq is not installed, so tool calls cannot be inspected.\n' >&2
+  printf 'This guard fails closed. Install jq (macOS: brew install jq) and retry.\n' >&2
+  exit 2
+fi
+
 TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')
 
 case "$TOOL" in

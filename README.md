@@ -1,41 +1,54 @@
 # workflow-shell-marketplace
 
-A Claude Code **marketplace** distributing the spec-driven workflow shell as installable plugins —
-replacing the old `cp -R` / `adopt-workflow` copy approach.
+A Claude Code **marketplace** distributing the spec-driven workflow shell as a single installable
+plugin — replacing the old `cp -R` / `adopt-workflow` copy approach.
 
-## Plugins
+## The plugin
 
 | Plugin | Status | What it is |
 |---|---|---|
-| `workflow-shell` | ✅ v0.3.0 | The **crux**: routing, the 6-phase state machine, verifier/fixer loops, the categorized agent tree, the workflow skills (+ shared `_scripts`), the full hook surface (secrets guard, memory-write guard, 350K context-budget check, session capture/compile, budget/lint), the **SDK memory pipeline** (the designated sole memory writer; its deliver-time write is **not yet provisioned in 0.3.0** — pipeline code + the memory-write guard ship and are wired, the deliver-time writer lands in a follow-up), and the `Workflow Orchestrator` output style. |
-| `workflow-refresh` | ✅ v0.1.0 | The **drift reconciler**: detect & repair divergence between an adopted project and the installed `workflow-shell`. Dry-run by default; idempotent; never clobbers project-owned state. |
+| `workflow-shell` | ✅ v0.4.0 | Everything: routing, the 6-phase state machine, verifier/fixer loops, the categorized agent tree, the workflow skills (+ shared `_scripts`), the full hook surface (secrets guard, memory-write guard, 350K context-budget check, session capture/compile, budget/lint), the **SDK memory pipeline** (sole memory writer at `deliver`; `/workflow-init` provisions its per-project `.venv`), and the `Workflow Orchestrator` output style. |
 
 ## Install
 
 ```text
-# Local (recommended while iterating):
-/plugin marketplace add /Users/rohitseelam/Projects/workflow-shell-marketplace
+# From GitHub:
+/plugin marketplace add Rohit-Seelam/workflow-shell-marketplace
 /plugin install workflow-shell@workflow-shell-marketplace
 
-# From GitHub (after you push this repo):
-/plugin marketplace add <owner>/workflow-shell-marketplace
+# Local (while iterating on the marketplace repo itself):
+/plugin marketplace add /Users/rohitseelam/Projects/workflow-shell-marketplace
 /plugin install workflow-shell@workflow-shell-marketplace
 ```
 
-**Prerequisite: `jq`.** The memory-write guard and the session-capture / budget / lint hooks parse hook
-stdin with `jq` (the secrets guard and the context injector are python3-only and do not need it). Install
-it once per machine — `brew install jq` (macOS) or your package manager. Without `jq` those hooks emit a
-`command not found` and no-op; `protect-secrets.sh` and the contract injection are unaffected.
+**Prerequisites (once per machine):**
+- **`jq`** — the memory-write guard and the session-capture / budget / lint hooks parse hook stdin with it
+  (`brew install jq`). Without it those hooks no-op noisily; the secrets guard and contract injection are
+  python3-only and unaffected.
+- **`uv`** — `/workflow-init` uses it to provision the memory pipeline's per-project Python environment
+  (`.claude/.venv` with `claude-agent-sdk`). If absent, init prints the one manual command instead.
 
 Then, **in each project** you want to run the workflow:
 
 ```text
-/workflow-init        # seeds .claude/{CLAUDE.md, active.json, workflow/queue.md}, merges settings.json
+/workflow-init        # seeds .claude/{CLAUDE.md, active.json, workflow/queue.md, memory scaffolding},
+                      # merges settings.json, provisions .claude/.venv for the memory pipeline
 /clear                # binds the Workflow Orchestrator output style (output styles load at session start)
 ```
 
-That's it. The contract docs, skills, agents, and behavior come from the plugin; only per-project state
-lives in the project's `.claude/`.
+That's it. The contract docs, skills, agents, hooks, and behavior come from the plugin; only per-project
+state lives in the project's `.claude/`.
+
+## Updating adopted projects
+
+```text
+/plugin marketplace update workflow-shell-marketplace
+claude plugin update workflow-shell@workflow-shell-marketplace --scope project   # in each project
+```
+
+Restart the session after updating. Re-running `/workflow-init` afterwards is safe and recommended — it is
+idempotent (merges, never clobbers) and fills in anything a newer plugin version expects (settings keys,
+memory scaffolding, the `.venv`).
 
 ## How the two hard problems are solved
 
@@ -52,47 +65,22 @@ lives in the project's `.claude/`.
 
 ## Migrating a copy-adopted project to the plugin
 
-For a project that previously got the shell via `cp -R` / `adopt-workflow`:
+For a project that previously got the shell via `cp -R` / `adopt-workflow` (or a messy earlier adoption),
+the clean path is a backup-and-reinit:
 
-1. Install the plugin (above).
-2. Run `/workflow-init`. It is idempotent — it keeps your existing `CLAUDE.md`/`active.json`/`queue.md` and
-   only merges `settings.json` (adds `outputStyle` + subagent wiring, unions the secrets deny-list).
-3. **Delete the now-duplicated, plugin-provided copies** from the project so there's one source of truth:
-   `rm -rf .claude/workflow/{README,phases,routing,artifacts,communication,evaluation,migration}.md .claude/workflow/templates .claude/skills/workflow* .claude/agents .claude/constitution.md .claude/rules`
-   Keep **only** the project files: `.claude/CLAUDE.md`, `.claude/active.json`, `.claude/workflow/queue.md`,
-   `.claude/specs/`, `.claude/settings.json` (and `memory/` if you run the pipeline).
+1. Back up the old state: `mv .claude ".claude.bak-$(date +%Y%m%d-%H%M%S)"`
+2. Install/update the plugin (above) and run `/workflow-init` for a fresh, current adoption.
+3. Copy anything you still want (in-flight `specs/`, `active.json`, `queue.md` entries, decisions) from the
+   backup into the fresh `.claude/`.
 4. `/clear` and verify the SessionStart hook injects the contract.
 
-> Edit your project `CLAUDE.md`: drop the old `@workflow/README.md` / `@constitution.md` imports (the hook
-> now provides them) and keep the project name + stack + state pointers.
+## Fate of retired components
 
-> **Tip:** step 3's manual `rm` is exactly what `workflow-refresh`'s `R-COPY` rule automates (byte-match
-> gated). Install `workflow-refresh` and run `/workflow-refresh` to see the full migration plan, then
-> `--apply` it — no hand-typed delete list.
-
-## Keeping an adopted project current
-
-After you `/plugin update workflow-shell` (or onboard a long-ago-adopted project), the plugin may have moved
-ahead of what the project was set up against — a broadened secrets deny-list, new settings wiring, a version
-stamp, stale copies to prune. Install the **`workflow-refresh`** plugin and reconcile each project:
-
-```text
-/plugin install workflow-refresh@workflow-shell-marketplace
-
-# In each adopted project:
-/workflow-refresh            # dry-run: drift report + plan, writes nothing
-/workflow-refresh --apply    # apply the safe, idempotent rules; re-verify; list residual manual items
-```
-
-It targets whatever `workflow-shell` version is **installed right now**, is idempotent, and **never clobbers
-project-owned state** (`active.json`, `specs/`, `queue.md`, `CLAUDE.md` prose, your `allow` rules). It does
-**not** adopt — for an unadopted project it defers to `/workflow-init`. See
-`plugins/workflow-refresh/README.md`.
-
-## Fate of `adopt-workflow`
-
-The old copy-based `~/.claude/skills/adopt-workflow` skill has been **removed** (2026-06-17). This plugin
-fully replaces it — install it and run `/workflow-init` instead.
+- **`adopt-workflow`** (copy-based skill) — removed 2026-06-17; `/workflow-init` replaces it.
+- **`workflow-memory-pipeline`** (separate memory plugin) — never built as a separate plugin; the SDK
+  memory pipeline ships inside `workflow-shell` since 0.3.0.
+- **`workflow-refresh`** (drift reconciler plugin) — retired at 0.4.0 in favor of the simpler
+  backup-and-reinit flow above; `/workflow-init` is idempotent and safe to re-run after every update.
 
 ## Repo layout
 
@@ -100,6 +88,5 @@ fully replaces it — install it and run `/workflow-init` instead.
 workflow-shell-marketplace/
 ├── .claude-plugin/marketplace.json
 └── plugins/
-    ├── workflow-shell/              # crux plugin incl. memory pipeline (see plugins/workflow-shell)
-    └── workflow-refresh/            # drift reconciler (see plugins/workflow-refresh)
+    └── workflow-shell/              # the single plugin, incl. memory pipeline
 ```

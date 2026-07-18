@@ -1,8 +1,8 @@
 ---
 name: workflow-init
-description: Adopt the workflow-shell contract into THIS project. Seeds CLAUDE.md, active.json, a blank queue.md, and a .workflow-version stamp, then MERGES settings.json (outputStyle + enabledPlugins self-activation + subagent wiring + a broad secrets deny-list). Idempotent — never clobbers existing files; merges/upserts instead of overwriting.
+description: Adopt the workflow-shell contract into THIS project. Seeds CLAUDE.md, active.json, a blank queue.md, memory scaffolding, and a .workflow-version stamp; MERGES settings.json (outputStyle + enabledPlugins self-activation + subagent wiring + a broad secrets deny-list); provisions the memory pipeline's .claude/.venv via uv. Idempotent — never clobbers existing files; merges/upserts instead of overwriting.
 argument-hint: [project-name]
-allowed-tools: Bash(mkdir:*), Bash(test:*), Bash(jq:*), Bash(python3:*), Bash(basename:*), Bash(printf:*), Bash(command:*), Bash(mktemp:*), Bash(mv:*), Read
+allowed-tools: Bash(mkdir:*), Bash(test:*), Bash(jq:*), Bash(python3:*), Bash(basename:*), Bash(printf:*), Bash(command:*), Bash(mktemp:*), Bash(mv:*), Bash(uv:*), Bash(grep:*), Bash(touch:*), Bash(cp:*), Read
 ---
 
 # Initialize the workflow shell in this project
@@ -19,7 +19,11 @@ Run the seeding engine (safe to run repeatedly):
 
 ```bash
 set -e
-mkdir -p .claude .claude/workflow
+mkdir -p .claude .claude/workflow .claude/specs .claude/sessions \
+         .claude/memory/topics \
+         .claude/agent-memory/architect .claude/agent-memory/backend-engineer \
+         .claude/agent-memory/cross-checker .claude/agent-memory/product-manager \
+         .claude/agent-memory/qa-engineer .claude/agent-memory/task-decomposer
 NAME="$(basename "$PWD")"
 
 # 1. CLAUDE.md — seed only if absent
@@ -119,9 +123,8 @@ PY
   echo "merged .claude/settings.json (python)"
 fi
 
-# 5. Version stamp — record which workflow-shell version this project was adopted against,
-#    so refresh tooling can later detect installed-vs-adopted drift. Upsert: keep first
-#    adoptedVersion/adoptedAt; always refresh lastInitVersion/lastInitAt.
+# 5. Version stamp — record which workflow-shell version this project was adopted against.
+#    Upsert: keep first adoptedVersion/adoptedAt; always refresh lastInitVersion/lastInitAt.
 STAMP=.claude/workflow/.workflow-version
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-}"
 python3 - "$STAMP" "$PLUGIN_ROOT" <<'PY'
@@ -140,8 +143,8 @@ try:
         prev = json.load(fh)
 except Exception:
     pass
-# Preserve-merge: start from prev so any keys workflow-refresh owns (refreshedVersion, refreshedSha,
-# sourceCommit, rulesApplied, ...) survive a re-init. init only OWNS the four keys it sets below.
+# Preserve-merge: start from prev so any keys other tooling may have written survive a re-init.
+# init only OWNS the four keys it sets below.
 out = dict(prev)
 out["plugin"] = "workflow-shell@workflow-shell-marketplace"
 out.setdefault("adoptedVersion", ver)
@@ -152,6 +155,39 @@ with open(stamp, "w") as fh:
     json.dump(out, fh, indent=2)
 print("stamped .claude/workflow/.workflow-version (version %s)" % ver)
 PY
+
+# 6. Memory-pipeline runtime — provision .claude/.venv with claude-agent-sdk (idempotent).
+#    The SDK memory pipeline (sole memory writer at deliver) runs from this per-project venv.
+if [ -x .claude/.venv/bin/python ] && .claude/.venv/bin/python -c 'import claude_agent_sdk' 2>/dev/null; then
+  echo "kept existing .claude/.venv (claude-agent-sdk present)"
+elif command -v uv >/dev/null 2>&1; then
+  { uv venv .claude/.venv --python 3.13 || uv venv .claude/.venv; } >/dev/null 2>&1
+  if uv pip install --python .claude/.venv/bin/python claude-agent-sdk >/dev/null 2>&1; then
+    echo "provisioned .claude/.venv (claude-agent-sdk installed)"
+  else
+    echo "WARN: venv created but claude-agent-sdk install failed (network?) — memory writes stay inert until you run: uv pip install --python .claude/.venv/bin/python claude-agent-sdk"
+  fi
+else
+  echo "WARN: uv not found — memory pipeline not provisioned. Run once: uv venv .claude/.venv --python 3.13 && uv pip install --python .claude/.venv/bin/python claude-agent-sdk"
+fi
+
+# 6b. Seed the extraction-learnings skill PROJECT-SIDE (only if absent). The memory pipeline
+#     APPENDS learned heuristics to this file at every deliver — an append target is per-project
+#     data and must never live in the plugin cache (which is replaced on update).
+if [ ! -f .claude/skills/memory/extraction-learnings/SKILL.md ] && [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] \
+   && [ -f "${CLAUDE_PLUGIN_ROOT}/skills/memory-extraction-learnings/SKILL.md" ]; then
+  mkdir -p .claude/skills/memory/extraction-learnings
+  cp "${CLAUDE_PLUGIN_ROOT}/skills/memory-extraction-learnings/SKILL.md" .claude/skills/memory/extraction-learnings/SKILL.md
+  echo "seeded .claude/skills/memory/extraction-learnings/SKILL.md (pipeline append target)"
+else
+  echo "kept existing extraction-learnings (or plugin root unavailable)"
+fi
+
+# 7. .gitignore — keep the venv and raw session captures out of the project's git (idempotent appends)
+touch .gitignore
+grep -qxF '.claude/.venv/' .gitignore || printf '%s\n' '.claude/.venv/' >> .gitignore
+grep -qxF '.claude/sessions/' .gitignore || printf '%s\n' '.claude/sessions/' >> .gitignore
+echo "ensured .gitignore covers .claude/.venv/ and .claude/sessions/"
 echo "--- done ---"
 ```
 
@@ -190,6 +226,9 @@ After the engine runs:
    - `.claude/workflow/.workflow-version` present,
    - `.claude/settings.json` has `outputStyle: "Workflow Orchestrator"`,
    - `.claude/settings.json` has `enabledPlugins["workflow-shell@workflow-shell-marketplace"] = true`,
-   - `.claude/settings.json` `permissions.deny` includes the secret patterns.
+   - `.claude/settings.json` `permissions.deny` includes the secret patterns,
+   - `.claude/memory/topics/` and the 6 `.claude/agent-memory/<actor>/` silos exist,
+   - `.claude/.venv/bin/python` imports `claude_agent_sdk` (else surface the WARN from step 6 —
+     adoption is still valid, but deliver-time memory writes stay inert until the venv exists).
    If `enabledPlugins` is not set, the SessionStart hook never fires (active.json gate is moot) —
    the patch in step 4 now sets it, but verify it merged.

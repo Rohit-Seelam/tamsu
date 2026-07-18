@@ -4,13 +4,13 @@ This plugin is **generated** from the canonical contract by `scripts/repackage.s
 
 | Field | Value |
 |---|---|
-| Plugin version | 0.3.0 |
+| Plugin version | 0.4.0 |
 | Canonical repo | scratchpad-priv |
-| Canonical commit | `694e3d1a19737c8d04c94914d43659b42af7ac76` |
-| Committed at | 2026-06-28T15:30:37+05:30 |
+| Canonical commit | `35ab30ca080ac3816bf9891b135ef4e44e9669ff` |
+| Committed at | 2026-07-18T16:47:07+05:30 |
 | Canonical spec | 055 |
-| Packaged at | 2026-06-28T11:16:44Z |
-| HEAD subject | Merge pull request #10 from Rohit-Seelam/routine/shell-audit-20260628-pr8 |
+| Packaged at | 2026-07-18T11:19:14Z |
+| HEAD subject | Env-aware path resolution for the memory pipeline (plugin-portable) |
 | includeStackRules | true |
 | promoteProtectSecrets | false |
 

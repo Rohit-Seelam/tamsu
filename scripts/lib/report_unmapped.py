@@ -51,6 +51,7 @@ MAPPED = [
     "skills/memory/compile/SKILL.md", "skills/memory/extract/SKILL.md",
     "skills/memory/extraction-learnings/SKILL.md", "skills/memory/jsonl-format/SKILL.md",
     "dynamic-workflows/shell-audit.md",
+    "settings.sdk-memory.json",         # SDK subprocess settings — shipped at plugin root, resolved via _asset()
     # hooks — ENUMERATED Class-A (the merged target ships the full hook surface). Memory pipeline +
     # its 8 helpers + budget/lint/session hooks. Staged into the plugin's hooks/ as a HYBRID merge
     # alongside the plugin-native hooks.json + session-context.sh (which have no canonical source).
@@ -80,7 +81,6 @@ EXCLUDED = [
     # --- per-project config (workflow-init seeds fresh; never copied verbatim) ---
     "active.json", "CLAUDE.md",
     "settings.json", "settings.local.json",
-    "settings.sdk-memory.json",         # memory allow-list; its CONTENT folds into the init PATCH (not copied)
     # --- the plugin ships its own divergent python fork of protect-secrets.sh; canonical bash copy
     #     is intentionally NOT staged (tracked follow-up: reconcile the fork). Excluded, not MAPPED,
     #     so the gate does not silently treat the canonical<->fork drift as "accounted for". ---

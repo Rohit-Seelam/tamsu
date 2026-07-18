@@ -49,6 +49,16 @@ while IFS= read -r f; do
   inject_preamble "$f" "$STAGE/agents/$rel"
 done < <(find "$SRC/agents" -name '*.md' ! -name '_template.md')
 
+# Orchestrator path port: its two runtime invocations reference `.claude/hooks/<x>` literally,
+# which does not exist in an adopted project (the scripts ship in the PLUGIN's hooks/). Rewrite
+# them to the plugin location. The launcher itself is location-independent (env-aware paths),
+# but the invoking agent must find it; the session-start context supplies the resolved plugin
+# root, and the injected preamble defines the `.claude/hooks/ -> plugin hooks/` mapping.
+sed -i '' \
+  -e 's#`bash \.claude/hooks/sdk-memory-pipeline\.sh "<active-spec-path>"`#`bash "<plugin-root>/hooks/sdk-memory-pipeline.sh" "<active-spec-path>"` (resolve `<plugin-root>` from the session-start context; run with cwd = the project root)#' \
+  -e 's#`\.claude/hooks/detect_batch_intent\.py`#`<plugin-root>/hooks/detect_batch_intent.py`#' \
+  "$STAGE/agents/orchestrator.md"
+
 # agent template -> templates/
 copy "$SRC/agents/_template.md" "$STAGE/templates/agent-template.md"
 
@@ -109,6 +119,10 @@ done
 # dynamic-workflows (md only; exclude runs/)
 [ -f "$SRC/dynamic-workflows/shell-audit.md" ] && \
   copy "$SRC/dynamic-workflows/shell-audit.md" "$STAGE/dynamic-workflows/shell-audit.md"
+
+# settings.sdk-memory.json — the SDK subprocess's permission settings. Shipped at the plugin ROOT;
+# the pipeline resolves it via _asset() (project-side copy wins, else plugin root).
+copy "$SRC/settings.sdk-memory.json" "$STAGE/settings.sdk-memory.json"
 
 ### Gate — every canonical path must be classified (Class A or C) or the cut ABORTS ----
 # The systemic fix from the 2026-06-28 bijective audit: unknown != excluded. Runs on SRC only
