@@ -89,13 +89,15 @@ EOF
 echo "seeded .claude/workflow/queue.md"
 else echo "kept existing .claude/workflow/queue.md"; fi
 
-# 4. settings.json — MERGE (deep-merge; union the deny list; never clobber existing keys)
+# 4. settings.json — MERGE (deep-merge; union the deny list; prune dead Write() deny rules —
+#    CLI >=2.1.214 governs file writes via the Edit(...) family, so Write() rules are no-ops and
+#    only emit startup warnings; never clobber existing keys)
 SETTINGS=.claude/settings.json
 [ -f "$SETTINGS" ] || printf '%s\n' '{}' > "$SETTINGS"
-PATCH='{"outputStyle":"Workflow Orchestrator","enabledPlugins":{"workflow-shell@workflow-shell-marketplace":true},"subagents":{"orchestrator":{"skills":["workflow-advance","workflow-rollback","workflow-status","workflow-new"]},"product-manager":{"skills":["workflow-advance"]},"task-decomposer":{"skills":["workflow-advance"]}},"permissions":{"deny":["Read(./.env)","Read(./.env.*)","Read(**/.env)","Read(**/.env.*)","Edit(./.env)","Edit(./.env.*)","Edit(**/.env)","Edit(**/.env.*)","Write(./.env)","Write(./.env.*)","Write(**/.env)","Write(**/.env.*)","Read(./credentials.json)","Read(**/credentials.json)","Edit(./credentials.json)","Edit(**/credentials.json)","Write(./credentials.json)","Write(**/credentials.json)","Read(./service-account*.json)","Read(**/service-account*.json)","Edit(./service-account*.json)","Edit(**/service-account*.json)","Write(./service-account*.json)","Write(**/service-account*.json)","Read(**/*-key.json)","Edit(**/*-key.json)","Write(**/*-key.json)","Read(**/*.pem)","Edit(**/*.pem)","Write(**/*.pem)","Read(**/*.key)","Edit(**/*.key)","Write(**/*.key)","Read(**/id_rsa)","Read(**/id_dsa)","Read(**/id_ecdsa)","Read(**/id_ed25519)","Edit(**/id_rsa)","Edit(**/id_dsa)","Edit(**/id_ecdsa)","Edit(**/id_ed25519)","Write(**/id_rsa)","Write(**/id_dsa)","Write(**/id_ecdsa)","Write(**/id_ed25519)","Read(**/.aws/**)","Edit(**/.aws/**)","Write(**/.aws/**)","Read(**/.npmrc)","Read(**/.pypirc)"]}}'
+PATCH='{"outputStyle":"Workflow Orchestrator","enabledPlugins":{"workflow-shell@workflow-shell-marketplace":true},"subagents":{"orchestrator":{"skills":["workflow-advance","workflow-rollback","workflow-status","workflow-new"]},"product-manager":{"skills":["workflow-advance"]},"task-decomposer":{"skills":["workflow-advance"]}},"permissions":{"deny":["Read(./.env)","Read(./.env.*)","Read(**/.env)","Read(**/.env.*)","Edit(./.env)","Edit(./.env.*)","Edit(**/.env)","Edit(**/.env.*)","Read(./credentials.json)","Read(**/credentials.json)","Edit(./credentials.json)","Edit(**/credentials.json)","Read(./service-account*.json)","Read(**/service-account*.json)","Edit(./service-account*.json)","Edit(**/service-account*.json)","Read(**/*-key.json)","Edit(**/*-key.json)","Read(**/*.pem)","Edit(**/*.pem)","Read(**/*.key)","Edit(**/*.key)","Read(**/id_rsa)","Read(**/id_dsa)","Read(**/id_ecdsa)","Read(**/id_ed25519)","Edit(**/id_rsa)","Edit(**/id_dsa)","Edit(**/id_ecdsa)","Edit(**/id_ed25519)","Read(**/.aws/**)","Edit(**/.aws/**)","Read(**/.npmrc)","Read(**/.pypirc)"]}}'
 if command -v jq >/dev/null 2>&1; then
   TMP="$(mktemp)"
-  jq --argjson p "$PATCH" '. as $o | ($o * $p) | .permissions.deny = ((($o.permissions.deny) // []) + (($p.permissions.deny) // []) | unique)' "$SETTINGS" > "$TMP" && mv "$TMP" "$SETTINGS"
+  jq --argjson p "$PATCH" '. as $o | ($o * $p) | .permissions.deny = ((($o.permissions.deny) // []) + (($p.permissions.deny) // []) | unique | map(select(startswith("Write(") | not)))' "$SETTINGS" > "$TMP" && mv "$TMP" "$SETTINGS"
   echo "merged .claude/settings.json (jq)"
 else
   python3 - "$SETTINGS" "$PATCH" <<'PY'
@@ -109,7 +111,8 @@ def merge(a, b):
             a.setdefault("permissions", {})
             for pk, pv in v.items():
                 if pk == "deny":
-                    a["permissions"]["deny"] = sorted(set(a["permissions"].get("deny", [])) | set(pv))
+                    merged = set(a["permissions"].get("deny", [])) | set(pv)
+                    a["permissions"]["deny"] = sorted(x for x in merged if not x.startswith("Write("))
                 else:
                     a["permissions"][pk] = pv
         elif isinstance(v, dict):

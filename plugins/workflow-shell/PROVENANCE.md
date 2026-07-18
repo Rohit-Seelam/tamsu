@@ -4,12 +4,12 @@ This plugin is **generated** from the canonical contract by `scripts/repackage.s
 
 | Field | Value |
 |---|---|
-| Plugin version | 0.4.0 |
+| Plugin version | 0.4.1 |
 | Canonical repo | scratchpad-priv |
 | Canonical commit | `35ab30ca080ac3816bf9891b135ef4e44e9669ff` |
 | Committed at | 2026-07-18T16:47:07+05:30 |
 | Canonical spec | 055 |
-| Packaged at | 2026-07-18T11:19:14Z |
+| Packaged at | 2026-07-18T13:10:02Z |
 | HEAD subject | Env-aware path resolution for the memory pipeline (plugin-portable) |
 | includeStackRules | true |
 | promoteProtectSecrets | false |

@@ -1,6 +1,6 @@
 {
   "name": "workflow-shell",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Spec-driven workflow shell: prompt routing, a 6-phase state machine, verifier/fixer loops, a categorized agent tree, and an orchestrator output style. Adopt into any project with /workflow-init.",
   "author": {
     "name": "Rohit Seelam",
@@ -21,7 +21,7 @@
     "commit": "35ab30ca080ac3816bf9891b135ef4e44e9669ff",
     "committedAt": "2026-07-18T16:47:07+05:30",
     "canonicalSpec": "055",
-    "packagedAt": "2026-07-18T11:19:14Z",
+    "packagedAt": "2026-07-18T13:10:02Z",
     "packagedBy": "scripts/repackage.sh",
     "options": {
       "includeStackRules": true,
