@@ -1,0 +1,6 @@
+{
+  "plansDirectory": "./.claude/plans",
+  "enabledPlugins": {
+    "oskiv@tamsu": true
+  }
+}
