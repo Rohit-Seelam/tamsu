@@ -9,7 +9,8 @@ config (`user/`, symlinked into `~/.claude` by `scripts/link-user.sh`). The desi
   model or harness now does by default.
 - `user/` is public: no secrets, tokens, personal data or absolute home paths.
 - Editing a file in `user/` changes the live `~/.claude` config immediately, because it is
-  symlinked.
+  symlinked. The live config follows whichever branch is checked out here, so return to `main`
+  after branch work.
 - `commands/init.md` is untested prose that Claude follows. After changing it, run `/oskiv:init`
   on a real repo.
 
