@@ -37,6 +37,12 @@ Templates are in `${CLAUDE_PLUGIN_ROOT}/templates/`. If that path didn't resolve
 - `feature_list.json` starts as `[]`. Features are mine to add. Offer to draft candidates from the
   product docs for me to review, but never write them in without my OK.
 - Write the first `progress.md` entry: the date, what was set up, and what's next.
+- After editing `.gitignore`, run `git check-ignore -v .claude/build/progress.md`. A common
+  `build/` line ignores `.claude/build/` too; anchor it as `/build/`.
+- **Python checks:** match the config to how the code is already written before judging it. That
+  means line length (measure it), and per-file ignores for files that print by design (CLI,
+  scripts, tests). Then run the checks and record the remaining counts by rule under Open risks
+  in `progress.md`. Fixing them is a feature for me to add, not part of init.
 - Keep `CLAUDE.md` under 12 KB. Every line should pass "would removing this cause a mistake?"
 
 ## Finish

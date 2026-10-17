@@ -1,5 +1,19 @@
 # Versions
 
+## 1.0.1 (2026-10-17)
+
+Lessons from the first real `/oskiv:init` run (macjev).
+
+- **Changed:** `init.md` now:
+  - checks that `.claude/build/` isn't caught by a `build/` gitignore line;
+  - matches the Python check config to the code's existing style before measuring;
+  - records the pre-existing findings in `progress.md` instead of fixing them.
+
+  `CLAUDE.md` notes that the live `~/.claude` config follows the checked-out branch.
+- **Verified:** tests pass, `claude plugin validate` is clean, and the macjev migration followed
+  these steps.
+- **Known gaps:** as in 1.0.0.
+
 ## 1.0.0 (2026-10-17)
 
 First release of `oskiv`. It replaces `workflow-shell` 0.4.1 (still in git history, before this
