@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "defaultMode": "auto",
     "deny": [
       "Read(**/.env)",
       "Read(**/.env.local)",
@@ -15,7 +14,8 @@
       "Bash(git push origin main*)",
       "Bash(git push * main*)",
       "Bash(gh pr merge*)"
-    ]
+    ],
+    "defaultMode": "auto"
   },
   "model": "opus[1m]",
   "statusLine": {

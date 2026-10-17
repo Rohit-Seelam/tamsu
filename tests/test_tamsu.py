@@ -88,7 +88,9 @@ class LinkUser(unittest.TestCase):
         """A real config file that differs is only replaced after an explicit 'y'."""
         with tempfile.TemporaryDirectory() as home:
             (Path(home) / "CLAUDE.md").write_text("mine\n")
-            self.run_script(home)
+            result = self.run_script(home)
+            self.assertEqual(result.returncode, 0, result.stderr)  # skipping must not abort the rest
+            self.assertTrue((Path(home) / "rules" / "python.md").is_symlink())
             self.assertFalse((Path(home) / "CLAUDE.md").is_symlink())
             self.assertEqual((Path(home) / "CLAUDE.md").read_text(), "mine\n")
 
