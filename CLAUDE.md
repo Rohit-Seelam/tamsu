@@ -4,6 +4,17 @@ My Claude Code harness: the `oskiv` plugin (`plugins/oskiv/`) and the source of 
 config (`user/`, symlinked into `~/.claude` by `scripts/link-user.sh`). The design is in
 `docs/architecture/baseline.md`; read it before changing what oskiv or `user/` contains.
 
+## Build list (how work runs)
+- State lives in `.claude/build/`: `feature_list.json` (what to build and how we know) and
+  `progress.md` (what each session did).
+- **Start:** read `progress.md` and `git log --oneline -20`. Take the first feature with
+  `passes: false` unless I name one.
+- **One feature per session.** Ask all rulings together, each with a recommendation.
+- **End:** run the tests. Set `passes: true` only if every step ran and its result was seen. Add a
+  dated entry at the top of `progress.md`, then commit on a branch and open a PR.
+- Never delete, reword or reorder features or their steps. If a step is wrong, write it in
+  `progress.md` and ask.
+
 ## Rules for changes
 - Keep it lean: add something only when the same miss has happened twice, and cut whatever the
   model or harness now does by default.

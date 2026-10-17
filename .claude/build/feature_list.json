@@ -1,0 +1,14 @@
+[
+  {
+    "id": "F001",
+    "category": "feature",
+    "description": "Block reads of .env and key files through shell commands too (cat, head, grep, cp ...), not only the Read tool. Use native Claude Code mechanisms first (permissions, sandbox filesystem rules) and a hook only for what those can't cover; .env.example stays readable. Lives in user/ (personal) unless the design says it belongs in oskiv.",
+    "steps": [
+      "A dated finding in docs/research/ compares the native options (permissions.deny, sandbox filesystem denyRead, PreToolUse hook) against official docs, with the chosen route and why",
+      "In a scratch dir holding .env, .env.example and notes.txt, a fresh headless session is denied `cat .env`, `head .env` and `grep X .env`, and the Read tool on .env",
+      "In the same dir, `cat .env.example`, `cat notes.txt` and a normal `git status` still work",
+      "python3 -m unittest discover tests passes, and covers any hook script added"
+    ],
+    "passes": false
+  }
+]
