@@ -28,7 +28,7 @@ for file in $(cd "$src" && find . -type f ! -name '.DS_Store' | sed 's|^\./||');
       echo "--- $target will be replaced by a link to $src/$file:"
       diff -u "$target" "$src/$file" || true
       printf "Replace? [y/N] "
-      read -r answer
+      read -r answer || answer=""
       [ "$answer" = "y" ] || { echo "skipped  $file"; continue; }
     fi
   fi
