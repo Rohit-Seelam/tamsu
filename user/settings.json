@@ -1,0 +1,64 @@
+{
+  "permissions": {
+    "defaultMode": "auto",
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.local)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Bash(git push -f*)",
+      "Bash(git push * -f*)",
+      "Bash(git push *--force*)",
+      "Bash(*--no-verify*)"
+    ],
+    "ask": [
+      "Bash(git push origin main*)",
+      "Bash(git push * main*)",
+      "Bash(gh pr merge*)"
+    ]
+  },
+  "model": "opus[1m]",
+  "statusLine": {
+    "type": "command",
+    "command": "sh ~/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "oskiv@tamsu": true
+  },
+  "extraKnownMarketplaces": {
+    "apple-notes-mcp": {
+      "source": {
+        "source": "git",
+        "url": "https://github.com/sweetrb/apple-notes-mcp.git"
+      },
+      "autoUpdate": true
+    },
+    "tamsu": {
+      "source": {
+        "source": "github",
+        "repo": "Rohit-Seelam/tamsu"
+      },
+      "autoUpdate": true
+    }
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "xhigh",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
+  "tui": "default",
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "autoMemoryEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
+  "skipWorkflowUsageWarning": true,
+  "autoCompactEnabled": false,
+  "remoteControlAtStartup": false,
+  "agentPushNotifEnabled": true,
+  "skipAutoPermissionPrompt": true,
+  "voiceEnabled": true
+}

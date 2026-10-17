@@ -1,0 +1,12 @@
+# oskiv: Python checks. Merge into pyproject.toml; keep the repo's existing values.
+[dependency-groups]
+dev = ["ruff", "pyright"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "BLE", "T20"]
+
+[tool.pyright]
+typeCheckingMode = "standard"

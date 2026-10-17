@@ -1,0 +1,4 @@
+# oskiv
+.scratch/
+.claude/worktrees/
+.claude/settings.local.json

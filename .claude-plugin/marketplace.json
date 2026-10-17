@@ -1,17 +1,18 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "workflow-shell-marketplace",
-  "description": "Rohit's spec-driven workflow shell — routing, phase machine, agent tree, hooks, and the SDK memory pipeline — as a single installable Claude Code plugin.",
+  "name": "tamsu",
+  "description": "Rohit's Claude Code harness: the oskiv plugin, plus the source of the user-level config.",
   "owner": {
     "name": "Rohit Seelam",
-    "email": "rohitseelam09@gmail.com"
+    "email": "151063013+Rohit-Seelam@users.noreply.github.com"
   },
   "plugins": [
     {
-      "name": "workflow-shell",
-      "description": "Routing, a 6-phase state machine, verifier/fixer loops, a categorized agent tree, workflow skills, the Workflow Orchestrator output style, and the SDK memory pipeline + full hook surface. Per-project adoption via /workflow-init.",
-      "source": "./plugins/workflow-shell",
-      "category": "workflow"
+      "name": "oskiv",
+      "description": "Initialise any repo with a lean long-running-agent setup: feature list, progress log, docs layout, CLAUDE.md skeleton, Python checks.",
+      "source": "./plugins/oskiv",
+      "version": "1.0.0",
+      "category": "development"
     }
   ]
 }
