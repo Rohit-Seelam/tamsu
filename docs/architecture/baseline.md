@@ -67,7 +67,7 @@ tamsu/
 │   ├── .claude-plugin/plugin.json      1.0.0
 │   ├── commands/init.md                /oskiv:init: scaffold or top up a repo; never overwrites
 │   ├── skills/loop/SKILL.md            /oskiv:loop: the orchestrator's outer loop
-│   ├── bin/oskiv-pane                  iTerm2 pane control (on PATH while the plugin is enabled)
+│   ├── bin/oskiv-pane                  tmux pane control (on PATH while the plugin is enabled)
 │   └── templates/                      (see "What init writes")
 ├── user/                      source of ~/.claude/{CLAUDE.md, rules/, settings.json}
 │   ├── CLAUDE.md
@@ -96,7 +96,7 @@ audit docs (all in git history). `scratchpad-priv` stops being the canonical sou
 | Effect | Rules |
 |---|---|
 | deny | `Read(**/.env*)` except `.env.example` · `Read(**/*.pem)` · `Read(**/*.key)` · `Bash(git push --force*)` · `Bash(git push -f*)` · `Bash(* --no-verify*)` |
-| allow | `Bash(oskiv-pane *)` (the loop's iTerm2 control, on PATH from oskiv's `bin/`) |
+| allow | `Bash(oskiv-pane *)` (the loop's tmux pane control, on PATH from oskiv's `bin/`) |
 
 There are no `ask` rules (2026-10-21): the loop must never wait on a prompt, and auto mode still
 prompts for ask rules. So any session can push `main` or merge a PR without asking. Force push
@@ -151,7 +151,7 @@ what's missing. The repo's `CLAUDE.md` stays under 12 KB.
 One orchestrator session lands a batch of features on `main`. It is the only session that asks me.
 The design and its rulings are in `.claude/plans/2026-10-21-outer-loop.md`.
 
-- **Lanes:** per feature, an iTerm2 tab with two panes:
+- **Lanes:** per feature, a tmux window (an iTerm2 tab under `tmux -CC`) with two panes:
   - an implementer, working in its own worktree and branch;
   - a verifier, which runs the app and reports to the orchestrator only.
 
@@ -161,7 +161,9 @@ The design and its rulings are in `.claude/plans/2026-10-21-outer-loop.md`.
   - The gate is the check command plus every step passing.
   - Only the orchestrator sets `passes`, in the merge commit.
   - Steps that need my clicks are batched into one ask at the end.
-- **Pane control:** `oskiv-pane`, from oskiv's `bin/`, uses iTerm2's own AppleScript only.
+- **Pane control:** `oskiv-pane`, from oskiv's `bin/`, drives tmux (since 1.0.3; AppleScript before).
+  - The orchestrator runs inside `tmux -CC new -A -s <repo>`, so iTerm2 shows every pane natively.
+  - The panes survive a closed window: `tmux -CC attach -t <repo>`.
   Messages go by SendMessage.
 - **Context:** before each brief or fix round, the orchestrator reads the worker's status line.
   - At 250K tokens it asks for a handoff note and relaunches the worker.

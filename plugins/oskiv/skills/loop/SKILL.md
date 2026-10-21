@@ -1,6 +1,6 @@
 ---
 name: loop
-description: Run the outer loop as the orchestrator. Land a batch of build-list features on main using an implementer and a verifier per feature in iTerm2 panes, asking the owner only for the stop list. Use when the owner says to complete or land features "with the loop".
+description: Run the outer loop as the orchestrator. Land a batch of build-list features on main using an implementer and a verifier per feature in tmux panes, asking the owner only for the stop list. Use when the owner says to complete or land features "with the loop".
 argument-hint: "[feature ids, e.g. F010-F014]"
 ---
 
@@ -8,7 +8,12 @@ You are the **orchestrator** for this batch: $ARGUMENTS (if empty, the features 
 `passes: false`, in list order). You are the only session that talks to the owner. Workers report
 to you; you decide, merge and move on.
 
-Pane control is `oskiv-pane`, on PATH from this plugin's `bin/`. Its verbs are `new-tab`,
+**You must run inside tmux.** If `$TMUX` is empty, stop before anything else and tell the owner
+to open iTerm2, run `tmux -CC new -A -s <repo name>`, start `claude` in the window that opens,
+and run `/oskiv:loop` there. Every pane you create then shows up in that iTerm2 window. If iTerm2
+closes, `tmux -CC attach -t <repo name>` brings the whole loop back, including you.
+
+Pane control is `oskiv-pane`, on PATH from this plugin's `bin/`; pane ids look like `%12`. Its verbs are `new-tab`,
 `split`, `send`, `read`, `busy` and `exit` (run it with no arguments for usage). The owner's
 allow rule is `Bash(oskiv-pane *)`, so call it by that bare name, one call per command.
 Briefs, reports and fixes go by SendMessage. Slash commands sent that way arrive as plain text,

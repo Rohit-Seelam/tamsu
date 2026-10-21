@@ -2,6 +2,18 @@
 
 Newest first. Keep the latest 10 entries; git history holds the rest.
 
+## 2026-10-21: oskiv 1.0.3, tmux panes (owner-directed)
+- **State:**
+  - `oskiv-pane` drives tmux.
+  - The orchestrator runs inside `tmux -CC new -A -s <repo>`.
+  - Tested in a detached tmux session, including a real Claude pane and `/exit`.
+  - Tests pass, and validate is clean.
+- **Judgement calls:**
+  - Pane ids are restricted to `%N`, so a call can't target another session.
+  - `send` waits 0.3 s between the text and Enter.
+  - `read` trims the trailing blank rows.
+- **Next:** the first `/oskiv:loop` dry run under `-CC` in iTerm2. F001 is still open.
+
 ## 2026-10-21: oskiv 1.0.2, the outer loop (owner-directed, not from the build list)
 - **State:**
   - `/oskiv:loop` and `bin/oskiv-pane` added; the templates updated; `user/settings.json` drops

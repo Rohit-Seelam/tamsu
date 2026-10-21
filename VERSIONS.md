@@ -1,5 +1,35 @@
 # Versions
 
+## 1.0.3 (2026-10-21)
+
+`oskiv-pane` drives tmux instead of iTerm2 AppleScript.
+
+- **Changed:**
+  - Same verbs, same `Bash(oskiv-pane *)` rule.
+  - The orchestrator runs inside `tmux -CC new -A -s <repo>`, so iTerm2 shows the panes
+    natively, and the loop survives a closed window (`tmux -CC attach -t <repo>`).
+  - `read` returns the last 200 lines, not only the visible screen.
+  - Pane ids must look like `%12`.
+  - The skill stops first if it isn't inside tmux.
+- **Why:**
+  - more of a worker's output can be read;
+  - workers outlive the terminal window;
+  - it works in any terminal (the work laptop too);
+  - no Apple Events.
+- **Verified:**
+  - Tests pass, and `claude plugin validate` is clean.
+  - In a detached tmux session, `oskiv-pane` did each of these:
+    - created a window and a split;
+    - typed into both and read the text back;
+    - reported an idle pane as not busy;
+    - started a real `claude`, and read its screen with the status line;
+    - typed `/exit`, after which the pane was back at the shell.
+  - This closes 1.0.2's "`/exit` into a live Claude pane is untested" gap.
+- **Known gaps:**
+  - Not yet run under `-CC` in iTerm2; only a detached session was tested.
+  - `busy` compares the screen one second apart, which is a heuristic.
+  - The loop itself has still not run end to end.
+
 ## 1.0.2 (2026-10-21)
 
 The outer loop: one orchestrator lands a batch of features on `main` with an implementer and a
