@@ -9,9 +9,9 @@
   "plugins": [
     {
       "name": "oskiv",
-      "description": "Initialise any repo with a lean long-running-agent setup: feature list, progress log, docs layout, CLAUDE.md skeleton, Python checks.",
+      "description": "Initialise any repo with a lean long-running-agent setup: feature list, progress log, docs layout, CLAUDE.md skeleton, Python checks; an orchestrated build loop.",
       "source": "./plugins/oskiv",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "category": "development"
     }
   ]

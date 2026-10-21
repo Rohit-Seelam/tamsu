@@ -1,0 +1,68 @@
+#!/bin/sh
+# The only way the loop touches iTerm2. Uses iTerm2's own AppleScript (no System Events),
+# and addresses sessions by their unique ID, which new-tab and split print.
+#
+#   oskiv-pane new-tab              open a tab in the front window; print its session id
+#   oskiv-pane split <id>           split that pane vertically; print the new session id
+#   oskiv-pane send <id> <text>     type one line into the pane and press Enter
+#   oskiv-pane read <id>            print the pane's visible text (the status line included)
+#   oskiv-pane busy <id>            print true while the pane is producing output, else false
+#   oskiv-pane exit <id>            type /exit into the pane
+
+set -eu
+
+usage() { sed -n '5,10p' "$0" | sed 's/^# *//' >&2; exit 2; }
+
+[ $# -ge 1 ] || usage
+verb=$1; shift
+
+case $verb in
+  new-tab) [ $# -eq 0 ] || usage ;;
+  split|read|busy|exit) [ $# -eq 1 ] || usage ;;
+  send)
+    [ $# -eq 2 ] || usage
+    case $2 in *"
+"*) echo "oskiv-pane: send takes one line; send longer text by SendMessage" >&2; exit 2 ;; esac
+    ;;
+  *) usage ;;
+esac
+
+# Arguments travel as argv, never spliced into the script text.
+osascript - "$verb" "$@" <<'APPLESCRIPT'
+on findSession(sid)
+  tell application "iTerm2"
+    repeat with w in windows
+      repeat with t in tabs of w
+        repeat with s in sessions of t
+          if unique ID of s is sid then return s
+        end repeat
+      end repeat
+    end repeat
+  end tell
+  error "no iTerm2 pane with id " & sid
+end findSession
+
+on run argv
+  set verb to item 1 of argv
+  tell application "iTerm2"
+    if verb is "new-tab" then
+      tell current window to set t to (create tab with default profile)
+      return unique ID of current session of t
+    end if
+    set s to my findSession(item 2 of argv)
+    if verb is "split" then
+      tell s to set n to (split vertically with default profile)
+      return unique ID of n
+    else if verb is "send" then
+      tell s to write text (item 3 of argv)
+    else if verb is "read" then
+      return contents of s
+    else if verb is "busy" then
+      return (is processing of s) as text
+    else if verb is "exit" then
+      tell s to write text "/exit"
+    end if
+  end tell
+  return ""
+end run
+APPLESCRIPT

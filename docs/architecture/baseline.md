@@ -66,6 +66,8 @@ tamsu/
 ├── plugins/oskiv/
 │   ├── .claude-plugin/plugin.json      1.0.0
 │   ├── commands/init.md                /oskiv:init: scaffold or top up a repo; never overwrites
+│   ├── skills/loop/SKILL.md            /oskiv:loop: the orchestrator's outer loop
+│   ├── bin/oskiv-pane                  iTerm2 pane control (on PATH while the plugin is enabled)
 │   └── templates/                      (see "What init writes")
 ├── user/                      source of ~/.claude/{CLAUDE.md, rules/, settings.json}
 │   ├── CLAUDE.md
@@ -94,17 +96,24 @@ audit docs (all in git history). `scratchpad-priv` stops being the canonical sou
 | Effect | Rules |
 |---|---|
 | deny | `Read(**/.env*)` except `.env.example` · `Read(**/*.pem)` · `Read(**/*.key)` · `Bash(git push --force*)` · `Bash(git push -f*)` · `Bash(* --no-verify*)` |
-| ask | `Bash(git push origin main*)` · `Bash(git push * main*)` · `Bash(gh pr merge*)` |
+| allow | `Bash(oskiv-pane *)` (the loop's iTerm2 control, on PATH from oskiv's `bin/`) |
+
+There are no `ask` rules (2026-10-21): the loop must never wait on a prompt, and auto mode still
+prompts for ask rules. So any session can push `main` or merge a PR without asking. Force push
+stays denied, so a bad push is undone by a revert.
 
 It also removes:
-- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` and `teammateMode`;
+- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`;
 - the stale `~/.claude/output-styles/workflow-orchestrator.md`.
 
-**Git policy (stated in the init's CLAUDE.md skeleton, and enforced above):**
+`teammateMode: "in-process"` stays (2026-10-21): teammates run inside the session, not in tmux.
+
+**Git policy (stated in the init's CLAUDE.md skeleton):**
 - The agent works on `feat/<slug>`, or in a worktree for background work.
 - It commits there after each verified feature.
-- It pushes the branch and opens a PR.
-- `main` is mine: I review PRs in batches and merge. With no remote, I merge locally.
+- Single session: it pushes the branch and opens a PR; I merge. With no remote, I merge locally.
+- With the loop: the orchestrator merges into `main` locally, and pushes it, after the merge
+  gate (see "Outer loop").
 
 ## What `/oskiv:init` writes into a repo
 
@@ -131,10 +140,40 @@ what's missing. The repo's `CLAUDE.md` stays under 12 KB.
 **Session loop** (in the skeleton, about 6 lines):
 - **Start:** read `progress.md` and `git log`, take the first failing feature, and re-check the one it
   depends on.
-- **During:** one feature only. Rulings are asked together.
+- **During:** one feature only. Decide and record: unsettled choices go under Judgement calls,
+  and the session stops only for the project's stop items or anything risky.
 - **End:** run the check command. Flip `passes` only if every step was seen to pass. Then write the
   progress entry, commit on the branch, and push/PR.
 - **New requirements** go to me first: the spec page changes, then I add a feature.
+
+## Outer loop (`/oskiv:loop`, 2026-10-21)
+
+One orchestrator session lands a batch of features on `main`. It is the only session that asks me.
+The design and its rulings are in `.claude/plans/2026-10-21-outer-loop.md`.
+
+- **Lanes:** per feature, an iTerm2 tab with two panes:
+  - an implementer, working in its own worktree and branch;
+  - a verifier, which runs the app and reports to the orchestrator only.
+
+  One lane at a time until a dry run passes, then two.
+- **Flow:** brief, build, verify, triage (fix now · hold · non-blocker), merge gate, next feature.
+  - After 2 fix rounds without a pass, the orchestrator asks me.
+  - The gate is the check command plus every step passing.
+  - Only the orchestrator sets `passes`, in the merge commit.
+  - Steps that need my clicks are batched into one ask at the end.
+- **Pane control:** `oskiv-pane`, from oskiv's `bin/`, uses iTerm2's own AppleScript only.
+  Messages go by SendMessage.
+- **Context:** before each brief or fix round, the orchestrator reads the worker's status line.
+  - At 250K tokens it asks for a handoff note and relaunches the worker.
+  - 300K is the hard cutoff.
+  - Auto-compact is off, so a full worker would stop.
+- **Stop list:**
+  - the kickoff block (services, `.env` keys, macOS permissions, steps that need me present);
+  - a human dependency nobody foresaw;
+  - a spec or decision change;
+  - anything destructive, costly or outbound;
+  - stuck;
+  - batch done.
 
 ## Deferred (add when a miss repeats twice)
 
@@ -144,9 +183,7 @@ skills · TypeScript rule + tsconfig template (when a TS repo exists).
 
 ## Direction (recorded, not built)
 
-- **Autonomous building:** agents in worktrees push and open PRs; I merge in batches. The
-  lifecycle (spec → verify → implement → PR) runs through skills brought back from 0.4.x one piece
-  at a time.
+- **Autonomous building:** now in the design, as the outer loop above.
 - **Knowledge from what I watch:** YouTube, Instagram and X, retrievable by agents. This needs its
   own design.
 

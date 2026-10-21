@@ -57,6 +57,20 @@ class Templates(unittest.TestCase):
                 self.assertTrue(text.startswith("---\npaths:\n"), "missing paths: frontmatter")
 
 
+class Loop(unittest.TestCase):
+    def test_pane_command_is_executable_and_parses(self):
+        """The allow rule names the bare command; without the exec bit it isn't found on PATH."""
+        pane = PLUGIN / "bin" / "oskiv-pane"
+        self.assertTrue(pane.stat().st_mode & 0o111, "not executable")
+        self.assertEqual(subprocess.run(["sh", "-n", str(pane)]).returncode, 0)
+
+    def test_pane_command_matches_allow_rule(self):
+        """Renaming the script without the rule would make every pane call prompt."""
+        allow = json.loads((ROOT / "user" / "settings.json").read_text())["permissions"]["allow"]
+        self.assertIn("Bash(oskiv-pane *)", allow)
+        self.assertIn("oskiv-pane", (PLUGIN / "skills" / "loop" / "SKILL.md").read_text())
+
+
 class LinkUser(unittest.TestCase):
     def run_script(self, home, *args):
         return subprocess.run(
