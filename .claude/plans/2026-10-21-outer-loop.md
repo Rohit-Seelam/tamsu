@@ -1,6 +1,6 @@
 # Outer loop for orchestrated lanes (proposal)
 
-**Status:** applied 2026-10-21 (oskiv 1.0.2); was a proposal earlier that day. Revised the same day with the owner's rulings, relayed by the
+**Status:** applied 2026-10-21 (oskiv 1.0.2; in 1.0.3 `oskiv-pane` drives tmux instead of iTerm2 AppleScript); was a proposal earlier that day. Revised the same day with the owner's rulings, relayed by the
 macjev orchestrator (§6). Nothing here is applied.
 **Checked against:** Claude Code 2.1.306 (`claude --help`); official docs for hooks, statusline,
 cross-session messaging, permissions and permission modes (read 2026-10-21); the iTerm2 scripting

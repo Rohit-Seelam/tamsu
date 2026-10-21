@@ -1,12 +1,12 @@
 #!/bin/sh
-# The only way the loop touches iTerm2. Uses iTerm2's own AppleScript (no System Events),
-# and addresses sessions by their unique ID, which new-tab and split print.
+# The only way the loop touches its worker panes. Drives tmux; run it from inside the tmux
+# session that holds the orchestrator (`tmux -CC new -A -s <name>` in iTerm2 shows it natively).
 #
-#   oskiv-pane new-tab              open a tab in the front window; print its session id
-#   oskiv-pane split <id>           split that pane vertically; print the new session id
+#   oskiv-pane new-tab              open a tmux window (an iTerm2 tab under -CC); print its pane id
+#   oskiv-pane split <id>           split that pane side by side; print the new pane id
 #   oskiv-pane send <id> <text>     type one line into the pane and press Enter
-#   oskiv-pane read <id>            print the pane's visible text (the status line included)
-#   oskiv-pane busy <id>            print true while the pane is producing output, else false
+#   oskiv-pane read <id>            print the pane's last 200 lines (the status line included)
+#   oskiv-pane busy <id>            print true if the pane's screen changes within a second, else false
 #   oskiv-pane exit <id>            type /exit into the pane
 
 set -eu
@@ -27,42 +27,33 @@ case $verb in
   *) usage ;;
 esac
 
-# Arguments travel as argv, never spliced into the script text.
-osascript - "$verb" "$@" <<'APPLESCRIPT'
-on findSession(sid)
-  tell application "iTerm2"
-    repeat with w in windows
-      repeat with t in tabs of w
-        repeat with s in sessions of t
-          if unique ID of s is sid then return s
-        end repeat
-      end repeat
-    end repeat
-  end tell
-  error "no iTerm2 pane with id " & sid
-end findSession
+if [ -z "${TMUX:-}" ]; then
+  echo "oskiv-pane: not inside tmux. Start the orchestrator in iTerm2 with: tmux -CC new -A -s <name>" >&2
+  exit 1
+fi
 
-on run argv
-  set verb to item 1 of argv
-  tell application "iTerm2"
-    if verb is "new-tab" then
-      tell current window to set t to (create tab with default profile)
-      return unique ID of current session of t
-    end if
-    set s to my findSession(item 2 of argv)
-    if verb is "split" then
-      tell s to set n to (split vertically with default profile)
-      return unique ID of n
-    else if verb is "send" then
-      tell s to write text (item 3 of argv)
-    else if verb is "read" then
-      return contents of s
-    else if verb is "busy" then
-      return (is processing of s) as text
-    else if verb is "exit" then
-      tell s to write text "/exit"
-    end if
-  end tell
-  return ""
-end run
-APPLESCRIPT
+# Pane ids look like %12; refuse anything else so a target can't be another session or window.
+if [ $# -ge 1 ]; then
+  case $1 in %[0-9]*) ;; *) echo "oskiv-pane: pane id must look like %12" >&2; exit 2 ;; esac
+fi
+
+type_line() {
+  tmux send-keys -t "$1" -l -- "$2"
+  sleep 0.3  # let the app take the text before Enter, so Enter isn't read as part of a paste
+  tmux send-keys -t "$1" Enter
+}
+
+case $verb in
+  new-tab) tmux new-window -P -F '#{pane_id}' -c "$PWD" ;;
+  split)   tmux split-window -h -t "$1" -P -F '#{pane_id}' -c "$PWD" ;;
+  send)    type_line "$1" "$2" ;;
+  read)    # drop the blank rows below the last output, so `tail` shows the status line
+    tmux capture-pane -p -J -t "$1" -S -200 | awk 'NF { while (n > 0) { print ""; n-- } print; next } { n++ }' ;;
+  busy)
+    a=$(tmux capture-pane -p -t "$1")
+    sleep 1
+    b=$(tmux capture-pane -p -t "$1")
+    if [ "$a" = "$b" ]; then echo false; else echo true; fi
+    ;;
+  exit)    type_line "$1" "/exit" ;;
+esac
