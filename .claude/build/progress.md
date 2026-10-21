@@ -2,7 +2,7 @@
 
 Newest first. Keep the latest 10 entries; git history holds the rest.
 
-## 2026-10-21: oskiv 1.1.0, the outer loop (owner-directed, not from the build list)
+## 2026-10-21: oskiv 1.0.2, the outer loop (owner-directed, not from the build list)
 - **State:**
   - `/oskiv:loop` and `bin/oskiv-pane` added; the templates updated; `user/settings.json` drops
     the ask rules and allows `Bash(oskiv-pane *)`; `baseline.md` gains the Outer loop section.
@@ -14,11 +14,11 @@ Newest first. Keep the latest 10 entries; git history holds the rest.
   - The pane rule went into `user/settings.json`, not `~/.claude/settings.local.json`: the docs
     list no user-level local file.
   - The script ships in the plugin's `bin/`, so the rule needs no home path or version.
-  - `user/settings.json` is changed on disk (live), but **not committed**: auto mode blocked
-    staging it as self-modification. The owner commits it on this branch.
-  - Until then, `test_pane_command_matches_allow_rule` fails on a clean checkout of the branch.
-  - The owner's earlier uncommitted edits to it (model, effort, `teammateMode`) are in the same
-    file.
+  - Auto mode first blocked staging `user/settings.json` as self-modification. The owner then
+    told me to commit it.
+  - The commit includes the owner's earlier edits: `model: opus`, Opus 5.5 effort `medium` and
+    `teammateMode: in-process`.
+  - Versioned 1.0.2 at the owner's request, not 1.1.0.
 - **Next:** a dry run of `/oskiv:loop` on one small macjev feature. F001 is still open.
 
 ## 2026-10-17: tamsu set up; oskiv 1.0.0 → 1.0.1 shipped

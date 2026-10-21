@@ -10,14 +10,12 @@
       "Bash(git push *--force*)",
       "Bash(*--no-verify*)"
     ],
-    "ask": [
-      "Bash(git push origin main*)",
-      "Bash(git push * main*)",
-      "Bash(gh pr merge*)"
+    "allow": [
+      "Bash(oskiv-pane *)"
     ],
     "defaultMode": "auto"
   },
-  "model": "opus[1m]",
+  "model": "opus",
   "statusLine": {
     "type": "command",
     "command": "sh ~/.claude/statusline-command.sh"
@@ -45,7 +43,7 @@
   "effortLevel": "xhigh",
   "modelSettings": {
     "claude-opus-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "medium"
     }
   },
   "tui": "default",
@@ -57,6 +55,7 @@
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "autoCompactEnabled": false,
+  "teammateMode": "in-process",
   "remoteControlAtStartup": false,
   "agentPushNotifEnabled": true,
   "skipAutoPermissionPrompt": true,

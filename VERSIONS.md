@@ -1,6 +1,6 @@
 # Versions
 
-## 1.1.0 (2026-10-21)
+## 1.0.2 (2026-10-21)
 
 The outer loop: one orchestrator lands a batch of features on `main` with an implementer and a
 verifier per feature. Design and rulings: `.claude/plans/2026-10-21-outer-loop.md`.
