@@ -14,8 +14,8 @@
 - **End:** run the check command. `passes: true` is set only in the commit that lands the feature
   on `main`, and only if every step ran and its result was seen. Add a dated entry at the top of
   `progress.md`, then commit.
-- **With the loop** (`/oskiv:loop`), the orchestrator alone asks me, merges and sets `passes`;
-  its workers never do.
+- **With the loop** (`/oskiv:loop`), only the orchestrator asks me. Its deployer merges and sets
+  `passes` when the orchestrator says so; the other workers never do.
 - Never delete, reword or reorder features or their steps. If a step is wrong, write it in
   `progress.md` and ask. New requirements go to me first: the `docs/` page changes, then I add a
   feature.
@@ -24,8 +24,8 @@
 - Work on `feat/<slug>` (or a worktree for background work), never on `main`. Commit after each
   verified feature.
 - {{With a remote: push the branch and open a PR with `gh pr create`; I merge. / No remote yet: I merge locally.}}
-- With the loop, the orchestrator merges a branch into `main` (and pushes `main`) once the
-  check command passes and the verifier passed every step.
+- With the loop, the deployer lands a branch on `main` (PR and merge, or a local merge with no
+  remote) once the check command passes and the verifier passed every step.
 
 ## Commands
 ```bash

@@ -1,5 +1,42 @@
 # Versions
 
+## 1.0.4 (2026-10-23)
+
+Loop v2 with four worker roles, `/oskiv:feedback`, and init as a skill.
+
+- **Changed:**
+  - `/oskiv:loop`:
+    - one shared tmux session `oskiv`, with tabs for orchestrator, implementer, verifier, outcome
+      and deployer, and one pane per project in each tab;
+    - workers run Sonnet at medium effort; the orchestrator is Opus at high effort;
+    - the deployer now pushes, reviews, merges, deploys and sets `passes`, and the orchestrator
+      never merges;
+    - the outcome agent runs the app and guides the owner's own check.
+  - `oskiv-pane`:
+    - `pane <role> <project>` (find or create) replaces `new-tab`/`split`;
+    - the source moved to `skills/loop/`, and `bin/oskiv-pane` is a 2-line wrapper that keeps it
+      on PATH.
+  - `init` moved from `commands/` to `skills/init/`; `/oskiv:init` is unchanged.
+  - Templates: the deployer lands and sets `passes`.
+- **Added:**
+  - `/oskiv:feedback`: records one file in tamsu's `feedback/` (committed) and never implements.
+  - One line in user `CLAUDE.md` naming the method.
+- **Verified:**
+  - Tests pass, and `claude plugin validate` is clean.
+  - In a detached tmux session with two fake projects:
+    - role tabs were created and named, and the first tab was tagged `orchestrator`;
+    - asking again for a project's pane returned the same pane;
+    - a second project got its own pane in the same tab;
+    - bad roles and project names were refused;
+    - a `claude --model sonnet --effort medium` worker started (its status line showed Sonnet 5.5,
+      effort medium) and closed with `/exit`.
+- **Known gaps:**
+  - The loop has not run end to end.
+  - Not tested under `-CC` in iTerm2.
+  - Tab colors are not set: do them by hand.
+  - Two projects' outcome agents could start apps on the same ports.
+  - The feedback skill hasn't been run from another project yet.
+
 ## 1.0.3 (2026-10-21)
 
 `oskiv-pane` drives tmux instead of iTerm2 AppleScript.

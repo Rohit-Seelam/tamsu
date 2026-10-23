@@ -6,8 +6,8 @@
   ```
   - `category` is `feature`, `bug` or `owner-action` (work only I can do).
   - A session changes only `passes`, and sets it to true only after running every step and seeing
-    the result, in the commit that lands the feature on `main`. With the loop, only the
-    orchestrator sets it.
+    the result, in the commit that lands the feature on `main`. With the loop, the deployer sets
+    it when the orchestrator says so.
   - I add or amend features. Ones that are no longer needed stay in the list, and I mark them with a
     note.
   - Write it with `json.dumps(features, indent=2, ensure_ascii=False) + "\n"`, so that changing one

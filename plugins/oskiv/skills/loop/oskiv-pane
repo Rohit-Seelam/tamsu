@@ -1,0 +1,91 @@
+#!/bin/sh
+# The only way the loop touches its worker panes. Drives tmux; run it from inside the shared tmux
+# session (`tmux -CC new -A -s oskiv` in iTerm2 shows it as one native window).
+#
+#   oskiv-pane pane <role> <project>   find or make <project>'s pane in the <role> tab; print its id
+#   oskiv-pane send <id> <text>        type one line into the pane and press Enter
+#   oskiv-pane read <id>               print the pane's last 200 lines (the status line included)
+#   oskiv-pane busy <id>               print true if the pane's screen changes within a second
+#   oskiv-pane exit <id>               type /exit into the pane
+#
+# Roles (one tab each, shared by every project): implementer, verifier, outcome, deployer.
+# The tab the orchestrators run in is tagged "orchestrator" on first use.
+
+set -eu
+
+usage() { sed -n '5,12p' "$0" | sed 's/^# *//' >&2; exit 2; }
+
+[ $# -ge 1 ] || usage
+verb=$1; shift
+
+case $verb in
+  pane)
+    [ $# -eq 2 ] || usage
+    case $1 in implementer|verifier|outcome|deployer) ;; *) usage ;; esac
+    case $2 in *[!A-Za-z0-9._-]*|"") echo "oskiv-pane: project name: letters, digits, . _ - only" >&2; exit 2 ;; esac
+    ;;
+  read|busy|exit) [ $# -eq 1 ] || usage ;;
+  send)
+    [ $# -eq 2 ] || usage
+    case $2 in *"
+"*) echo "oskiv-pane: send takes one line; send longer text by SendMessage" >&2; exit 2 ;; esac
+    ;;
+  *) usage ;;
+esac
+
+if [ -z "${TMUX:-}" ]; then
+  echo "oskiv-pane: not inside tmux. In iTerm2 run: tmux -CC new -A -s oskiv" >&2
+  exit 1
+fi
+
+# Pane ids look like %12; refuse anything else so a target can't be another session or window.
+if [ "$verb" != pane ]; then
+  case $1 in %[0-9]*) ;; *) echo "oskiv-pane: pane id must look like %12" >&2; exit 2 ;; esac
+fi
+
+type_line() {
+  tmux send-keys -t "$1" -l -- "$2"
+  sleep 0.3  # let the app take the text before Enter, so Enter isn't read as part of a paste
+  tmux send-keys -t "$1" Enter
+}
+
+# Find or make <project>'s pane in the <role> tab. Tabs and panes are found by tmux user options
+# (@oskiv_role, @oskiv_project), because Claude Code retitles panes and tmux may rename windows.
+find_pane() {
+  role=$1 project=$2
+  session=$(tmux display -p -t "$TMUX_PANE" '#{session_id}')
+  here=$(tmux display -p -t "$TMUX_PANE" '#{window_id}')
+  if [ -z "$(tmux show -wqv -t "$here" @oskiv_role)" ]; then
+    tmux set -w -t "$here" @oskiv_role orchestrator
+    tmux set -w -t "$here" automatic-rename off
+    tmux rename-window -t "$here" orchestrator
+  fi
+  win=$(tmux list-windows -t "$session" -F '#{window_id} #{@oskiv_role}' | awk -v r="$role" '$2 == r { print $1; exit }')
+  if [ -z "$win" ]; then
+    pane=$(tmux new-window -d -t "$session:" -n "$role" -c "$PWD" -P -F '#{pane_id}')
+    win=$(tmux display -p -t "$pane" '#{window_id}')
+    tmux set -w -t "$win" @oskiv_role "$role"
+    tmux set -w -t "$win" automatic-rename off
+  else
+    pane=$(tmux list-panes -t "$win" -F '#{pane_id} #{@oskiv_project}' | awk -v p="$project" '$2 == p { print $1; exit }')
+    if [ -n "$pane" ]; then echo "$pane"; return; fi
+    pane=$(tmux split-window -d -t "$win" -c "$PWD" -P -F '#{pane_id}')
+    tmux select-layout -t "$win" tiled >/dev/null
+  fi
+  tmux set -p -t "$pane" @oskiv_project "$project"
+  echo "$pane"
+}
+
+case $verb in
+  pane) find_pane "$1" "$2" ;;
+  send) type_line "$1" "$2" ;;
+  read) # drop the blank rows below the last output, so `tail` shows the status line
+    tmux capture-pane -p -J -t "$1" -S -200 | awk 'NF { while (n > 0) { print ""; n-- } print; next } { n++ }' ;;
+  busy)
+    a=$(tmux capture-pane -p -t "$1")
+    sleep 1
+    b=$(tmux capture-pane -p -t "$1")
+    if [ "$a" = "$b" ]; then echo false; else echo true; fi
+    ;;
+  exit) type_line "$1" "/exit" ;;
+esac

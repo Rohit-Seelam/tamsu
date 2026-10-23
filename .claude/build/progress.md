@@ -2,6 +2,26 @@
 
 Newest first. Keep the latest 10 entries; git history holds the rest.
 
+## 2026-10-23: oskiv 1.0.4, loop v2 + feedback + init as a skill (owner-directed)
+- **State:**
+  - Loop v2: a shared `oskiv` tmux session, with role tabs (implementer, verifier, outcome,
+    deployer) and one pane per project. Workers run Sonnet at medium effort; the orchestrator is
+    Opus at high effort. The deployer lands and sets `passes`.
+  - `/oskiv:feedback` writes to `feedback/`, and `init` is now a skill.
+  - One method line was added to user `CLAUDE.md`.
+  - Tests and validation pass. The detached tmux test with two fake projects passed. A headless
+    `/oskiv:feedback` run wrote the right file; it was deleted.
+- **Judgement calls:**
+  - The pane source lives in `skills/loop/` as the owner asked. `bin/oskiv-pane` stays as a
+    2-line wrapper, because a rule on the skill's path would need the versioned cache path or a
+    leading wildcard that matches any program.
+  - The outcome agent runs app processes in the background itself; it opens no extra panes.
+  - By default the outcome sitting stays batched at the end, per the 2026-10-21 ruling.
+  - The owner's uncommitted `user/settings.json` edit (Opus effort `high`) was left
+    uncommitted: it is theirs.
+- **Next:** the first real `/oskiv:loop` run under `tmux -CC new -A -s oskiv`. PR #4
+  (`chore/oskiv-init`) still waits for a ruling. F001 is still open.
+
 ## 2026-10-21: oskiv 1.0.3, tmux panes (owner-directed)
 - **State:**
   - `oskiv-pane` drives tmux.
