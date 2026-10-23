@@ -4,3 +4,4 @@
 - Answer short and in plain words first; define any new term; go deeper when I ask.
 - I often dictate, so read for intent and ask when the meaning matters and is unclear.
 - Visuals are design work: load the diagram/dataviz skills first and make them look professional, not basic.
+- My method is oskiv: each repo's work runs from its build list in `.claude/build/`, batches of features go through `/oskiv:loop`, and ideas about the method go to `/oskiv:feedback`.

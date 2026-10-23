@@ -35,7 +35,7 @@ class Templates(unittest.TestCase):
 
     def test_init_names_only_existing_templates(self):
         """init.md points at template files by name; a rename would silently break init."""
-        rows = [line.split("|") for line in (PLUGIN / "commands" / "init.md").read_text().splitlines()
+        rows = [line.split("|") for line in (PLUGIN / "skills" / "init" / "SKILL.md").read_text().splitlines()
                 if line.startswith("| `")]
         names = {name for row in rows for name in re.findall(r"`([^`]+)`", row[2])}
         self.assertTrue(names)
@@ -60,9 +60,18 @@ class Templates(unittest.TestCase):
 class Loop(unittest.TestCase):
     def test_pane_command_is_executable_and_parses(self):
         """The allow rule names the bare command; without the exec bit it isn't found on PATH."""
-        pane = PLUGIN / "bin" / "oskiv-pane"
-        self.assertTrue(pane.stat().st_mode & 0o111, "not executable")
-        self.assertEqual(subprocess.run(["sh", "-n", str(pane)]).returncode, 0)
+        for pane in [PLUGIN / "bin" / "oskiv-pane", PLUGIN / "skills" / "loop" / "oskiv-pane"]:
+            with self.subTest(path=pane.relative_to(ROOT)):
+                self.assertTrue(pane.stat().st_mode & 0o111, "not executable")
+                self.assertEqual(subprocess.run(["sh", "-n", str(pane)]).returncode, 0)
+
+    def test_skills_have_name_and_description(self):
+        """A skill without a description is never offered to the model."""
+        for path in (PLUGIN / "skills").glob("*/SKILL.md"):
+            with self.subTest(path=path.relative_to(ROOT)):
+                head = path.read_text().split("---")[1]
+                self.assertIn(f"name: {path.parent.name}\n", head)
+                self.assertIn("description: ", head)
 
     def test_pane_command_matches_allow_rule(self):
         """Renaming the script without the rule would make every pane call prompt."""

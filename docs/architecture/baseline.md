@@ -65,9 +65,10 @@ tamsu/
 ├── .claude-plugin/marketplace.json     name: tamsu → plugins: [oskiv]
 ├── plugins/oskiv/
 │   ├── .claude-plugin/plugin.json      1.0.0
-│   ├── commands/init.md                /oskiv:init: scaffold or top up a repo; never overwrites
-│   ├── skills/loop/SKILL.md            /oskiv:loop: the orchestrator's outer loop
-│   ├── bin/oskiv-pane                  tmux pane control (on PATH while the plugin is enabled)
+│   ├── skills/init/SKILL.md            /oskiv:init: scaffold or top up a repo; never overwrites
+│   ├── skills/loop/                    /oskiv:loop: SKILL.md + oskiv-pane (tmux pane control)
+│   ├── skills/feedback/SKILL.md        /oskiv:feedback: record an idea for oskiv in tamsu's feedback/
+│   ├── bin/oskiv-pane                  2-line wrapper that puts skills/loop/oskiv-pane on PATH
 │   └── templates/                      (see "What init writes")
 ├── user/                      source of ~/.claude/{CLAUDE.md, rules/, settings.json}
 │   ├── CLAUDE.md
@@ -146,36 +147,47 @@ what's missing. The repo's `CLAUDE.md` stays under 12 KB.
   progress entry, commit on the branch, and push/PR.
 - **New requirements** go to me first: the spec page changes, then I add a feature.
 
-## Outer loop (`/oskiv:loop`, 2026-10-21)
+## Outer loop (`/oskiv:loop`, since 1.0.2; roles as of 1.0.4)
 
-One orchestrator session lands a batch of features on `main`. It is the only session that asks me.
-The design and its rulings are in `.claude/plans/2026-10-21-outer-loop.md`.
+One orchestrator per project lands features on `main`. It is the only session that asks me. The
+first design and its rulings are in `.claude/plans/2026-10-21-outer-loop.md`; this section is
+current.
 
-- **Lanes:** per feature, a tmux window (an iTerm2 tab under `tmux -CC`) with two panes:
-  - an implementer, working in its own worktree and branch;
-  - a verifier, which runs the app and reports to the orchestrator only.
+- **One tmux session, `oskiv`,** shown as one iTerm2 window (`tmux -CC new -A -s oskiv`).
+  - It has one tab per role, shared by every project, and each project owns one pane per tab.
+  - More orchestrators (other projects) are more panes in the first tab.
+  - Closing iTerm2 loses nothing: `tmux -CC attach -t oskiv` brings it all back.
 
-  One lane at a time until a dry run passes, then two.
-- **Flow:** brief, build, verify, triage (fix now · hold · non-blocker), merge gate, next feature.
+| Tab | Model | Does |
+|---|---|---|
+| orchestrator | Opus, high effort | runs the loop, talks to me, never writes code or merges |
+| implementer | Sonnet, medium | builds the feature in its own worktree |
+| verifier | Sonnet, medium | checks it works by using it (visually for UI) |
+| outcome | Sonnet, medium | optional: runs the app and guides my own check; no code changes |
+| deployer | Sonnet, medium | push, PR, review, merge, CI/CD and deploy steps, live check |
+
+- **Flow:** build, verify, triage (fix now · hold · non-blocker), outcome if needed, deploy, next.
   - After 2 fix rounds without a pass, the orchestrator asks me.
-  - The gate is the check command plus every step passing.
-  - Only the orchestrator sets `passes`, in the merge commit.
-  - Steps that need my clicks are batched into one ask at the end.
-- **Pane control:** `oskiv-pane`, from oskiv's `bin/`, drives tmux (since 1.0.3; AppleScript before).
-  - The orchestrator runs inside `tmux -CC new -A -s <repo>`, so iTerm2 shows every pane natively.
-  - The panes survive a closed window: `tmux -CC attach -t <repo>`.
-  Messages go by SendMessage.
+  - The deployer sets `passes` in the commit that lands, when the orchestrator says so.
+  - By default, my own checks are batched into one outcome sitting at the end of the batch.
+- **Pane control:** `oskiv-pane pane <role> <project>` finds or makes a project's pane in a role's
+  tab. The source lives in `skills/loop/`; `bin/` puts it on PATH.
+  - Messages go by SendMessage.
+  - I can type into any worker's pane myself.
 - **Context:** before each brief or fix round, the orchestrator reads the worker's status line.
   - At 250K tokens it asks for a handoff note and relaunches the worker.
-  - 300K is the hard cutoff.
-  - Auto-compact is off, so a full worker would stop.
+  - 300K is the hard cutoff, in a 1M window for both Opus and Sonnet.
+  - Auto-compact is off.
 - **Stop list:**
   - the kickoff block (services, `.env` keys, macOS permissions, steps that need me present);
   - a human dependency nobody foresaw;
   - a spec or decision change;
-  - anything destructive, costly or outbound;
+  - anything destructive or costly, or a deploy `CLAUDE.md` doesn't describe;
   - stuck;
   - batch done.
+- **Feedback:** `/oskiv:feedback` records an idea about the method, from any project, into tamsu's
+  `feedback/` (committed, public). It never implements. Future skills (design, architecture,
+  testing …) come from there.
 
 ## Deferred (add when a miss repeats twice)
 
