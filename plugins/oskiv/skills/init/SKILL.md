@@ -1,4 +1,5 @@
 ---
+name: init
 description: Set up or top up this repo with the oskiv baseline (build list, progress log, docs layout, CLAUDE.md, Python checks). Safe to re-run; never overwrites.
 argument-hint: "[project name]"
 ---

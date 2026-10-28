@@ -22,8 +22,12 @@ config (`user/`, symlinked into `~/.claude` by `scripts/link-user.sh`). The desi
 - Editing a file in `user/` changes the live `~/.claude` config immediately, because it is
   symlinked. The live config follows whichever branch is checked out here, so return to `main`
   after branch work.
-- `commands/init.md` is untested prose that Claude follows. After changing it, run `/oskiv:init`
+- `skills/init/SKILL.md` is untested prose that Claude follows. After changing it, run `/oskiv:init`
   on a real repo.
+
+## Feedback inbox
+`feedback/` holds ideas about oskiv recorded from other projects by `/oskiv:feedback`. Commit new
+entries with your work. When one is acted on, say so in `VERSIONS.md`.
 
 ## Release
 1. Bump the version in **both** `plugins/oskiv/.claude-plugin/plugin.json` and

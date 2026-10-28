@@ -65,7 +65,10 @@ tamsu/
 ├── .claude-plugin/marketplace.json     name: tamsu → plugins: [oskiv]
 ├── plugins/oskiv/
 │   ├── .claude-plugin/plugin.json      1.0.0
-│   ├── commands/init.md                /oskiv:init: scaffold or top up a repo; never overwrites
+│   ├── skills/init/SKILL.md            /oskiv:init: scaffold or top up a repo; never overwrites
+│   ├── skills/loop/                    /oskiv:loop: SKILL.md + oskiv-pane (tmux pane control)
+│   ├── skills/feedback/SKILL.md        /oskiv:feedback: record an idea for oskiv in tamsu's feedback/
+│   ├── bin/oskiv-pane                  2-line wrapper that puts skills/loop/oskiv-pane on PATH
 │   └── templates/                      (see "What init writes")
 ├── user/                      source of ~/.claude/{CLAUDE.md, rules/, settings.json}
 │   ├── CLAUDE.md
@@ -94,17 +97,24 @@ audit docs (all in git history). `scratchpad-priv` stops being the canonical sou
 | Effect | Rules |
 |---|---|
 | deny | `Read(**/.env*)` except `.env.example` · `Read(**/*.pem)` · `Read(**/*.key)` · `Bash(git push --force*)` · `Bash(git push -f*)` · `Bash(* --no-verify*)` |
-| ask | `Bash(git push origin main*)` · `Bash(git push * main*)` · `Bash(gh pr merge*)` |
+| allow | `Bash(oskiv-pane *)` (the loop's tmux pane control, on PATH from oskiv's `bin/`) |
+
+There are no `ask` rules (2026-10-21): the loop must never wait on a prompt, and auto mode still
+prompts for ask rules. So any session can push `main` or merge a PR without asking. Force push
+stays denied, so a bad push is undone by a revert.
 
 It also removes:
-- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` and `teammateMode`;
+- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`;
 - the stale `~/.claude/output-styles/workflow-orchestrator.md`.
 
-**Git policy (stated in the init's CLAUDE.md skeleton, and enforced above):**
+`teammateMode: "in-process"` stays (2026-10-21): teammates run inside the session, not in tmux.
+
+**Git policy (stated in the init's CLAUDE.md skeleton):**
 - The agent works on `feat/<slug>`, or in a worktree for background work.
 - It commits there after each verified feature.
-- It pushes the branch and opens a PR.
-- `main` is mine: I review PRs in batches and merge. With no remote, I merge locally.
+- Single session: it pushes the branch and opens a PR; I merge. With no remote, I merge locally.
+- With the loop: the orchestrator merges into `main` locally, and pushes it, after the merge
+  gate (see "Outer loop").
 
 ## What `/oskiv:init` writes into a repo
 
@@ -131,10 +141,53 @@ what's missing. The repo's `CLAUDE.md` stays under 12 KB.
 **Session loop** (in the skeleton, about 6 lines):
 - **Start:** read `progress.md` and `git log`, take the first failing feature, and re-check the one it
   depends on.
-- **During:** one feature only. Rulings are asked together.
+- **During:** one feature only. Decide and record: unsettled choices go under Judgement calls,
+  and the session stops only for the project's stop items or anything risky.
 - **End:** run the check command. Flip `passes` only if every step was seen to pass. Then write the
   progress entry, commit on the branch, and push/PR.
 - **New requirements** go to me first: the spec page changes, then I add a feature.
+
+## Outer loop (`/oskiv:loop`, since 1.0.2; roles as of 1.0.4)
+
+One orchestrator per project lands features on `main`. It is the only session that asks me. The
+first design and its rulings are in `.claude/plans/2026-10-21-outer-loop.md`; this section is
+current.
+
+- **One tmux session, `oskiv`,** shown as one iTerm2 window (`tmux -CC new -A -s oskiv`).
+  - It has one tab per role, shared by every project, and each project owns one pane per tab.
+  - More orchestrators (other projects) are more panes in the first tab.
+  - Closing iTerm2 loses nothing: `tmux -CC attach -t oskiv` brings it all back.
+
+| Tab | Model | Does |
+|---|---|---|
+| orchestrator | Opus, high effort | runs the loop, talks to me, never writes code or merges |
+| implementer | Sonnet, medium | builds the feature in its own worktree |
+| verifier | Sonnet, medium | checks it works by using it (visually for UI) |
+| outcome | Sonnet, medium | optional: runs the app and guides my own check; no code changes |
+| deployer | Sonnet, medium | push, PR, review, merge, CI/CD and deploy steps, live check |
+
+- **Flow:** build, verify, triage (fix now · hold · non-blocker), outcome if needed, deploy, next.
+  - After 2 fix rounds without a pass, the orchestrator asks me.
+  - The deployer sets `passes` in the commit that lands, when the orchestrator says so.
+  - By default, my own checks are batched into one outcome sitting at the end of the batch.
+- **Pane control:** `oskiv-pane pane <role> <project>` finds or makes a project's pane in a role's
+  tab. The source lives in `skills/loop/`; `bin/` puts it on PATH.
+  - Messages go by SendMessage.
+  - I can type into any worker's pane myself.
+- **Context:** before each brief or fix round, the orchestrator reads the worker's status line.
+  - At 250K tokens it asks for a handoff note and relaunches the worker.
+  - 300K is the hard cutoff, in a 1M window for both Opus and Sonnet.
+  - Auto-compact is off.
+- **Stop list:**
+  - the kickoff block (services, `.env` keys, macOS permissions, steps that need me present);
+  - a human dependency nobody foresaw;
+  - a spec or decision change;
+  - anything destructive or costly, or a deploy `CLAUDE.md` doesn't describe;
+  - stuck;
+  - batch done.
+- **Feedback:** `/oskiv:feedback` records an idea about the method, from any project, into tamsu's
+  `feedback/` (committed, public). It never implements. Future skills (design, architecture,
+  testing …) come from there.
 
 ## Deferred (add when a miss repeats twice)
 
@@ -144,9 +197,7 @@ skills · TypeScript rule + tsconfig template (when a TS repo exists).
 
 ## Direction (recorded, not built)
 
-- **Autonomous building:** agents in worktrees push and open PRs; I merge in batches. The
-  lifecycle (spec → verify → implement → PR) runs through skills brought back from 0.4.x one piece
-  at a time.
+- **Autonomous building:** now in the design, as the outer loop above.
 - **Knowledge from what I watch:** YouTube, Instagram and X, retrievable by agents. This needs its
   own design.
 

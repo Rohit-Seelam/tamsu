@@ -1,0 +1,3 @@
+#!/bin/sh
+# Puts the loop's pane control on PATH, so the allow rule can name it without a versioned path.
+exec "$(dirname "$0")/../skills/loop/oskiv-pane" "$@"

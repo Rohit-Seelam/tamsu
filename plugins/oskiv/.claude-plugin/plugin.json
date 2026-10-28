@@ -1,7 +1,7 @@
 {
   "name": "oskiv",
-  "version": "1.0.1",
-  "description": "Initialise any repo with a lean long-running-agent setup: feature list, progress log, docs layout, CLAUDE.md skeleton, Python checks. Run /oskiv:init.",
+  "version": "1.0.4",
+  "description": "Initialise any repo with a lean long-running-agent setup: feature list, progress log, docs layout, CLAUDE.md skeleton, Python checks (/oskiv:init); an orchestrated build loop (/oskiv:loop).",
   "author": {
     "name": "Rohit Seelam",
     "email": "151063013+Rohit-Seelam@users.noreply.github.com"
