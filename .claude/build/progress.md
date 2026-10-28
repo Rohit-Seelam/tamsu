@@ -53,6 +53,18 @@ Newest first. Keep the latest 10 entries; git history holds the rest.
   - Versioned 1.0.2 at the owner's request, not 1.1.0.
 - **Next:** a dry run of `/oskiv:loop` on one small macjev feature. F001 is still open.
 
+## 2026-10-17: `/oskiv:init` run as a command on tamsu (top-up)
+- **State:**
+  - First time `/oskiv:init` ran as a slash command rather than followed by hand.
+  - Added: `docs/README.md`, `docs/{product,decisions,research}/`, and the `Commands` and
+    `Where files go` sections in `CLAUDE.md`.
+  - Left alone: settings, placement rule, build files, `.gitignore` (fragment already present;
+    `.claude/build/` not ignored), the Git section (already the remote variant), README.md and
+    VERSIONS.md at the root. No `pyproject.toml`: the only Python is `tests/`, run with stdlib
+    unittest.
+  - Check: 8 tests OK, `claude plugin validate` passed, `link-user.sh --check` all ok.
+- **Next:** F001, `.env` protection for shell reads.
+
 ## 2026-10-17: tamsu set up; oskiv 1.0.0 → 1.0.1 shipped
 - **State:**
   - tamsu replaces `workflow-shell-marketplace` and is now public.
@@ -90,5 +102,6 @@ Newest first. Keep the latest 10 entries; git history holds the rest.
 - With no ask rules, any session in any repo can push `main` or merge a PR without asking.
 - scratchpad-priv and the four seriesA repos still enable `workflow-shell@workflow-shell-marketplace`;
   each needs migrating to oskiv.
-- `/oskiv:init` has been followed by hand (on macjev) but not yet invoked as a command.
+- `/oskiv:init` has run as a command only on tamsu, which was already set up; a run on a fresh
+  repo is still untested.
 - A bare `git push` while on `main` isn't caught by the ask rules.

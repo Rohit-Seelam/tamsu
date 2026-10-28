@@ -38,3 +38,13 @@ entries with your work. When one is acted on, say so in `VERSIONS.md`.
 
 ## Git
 Work on a branch and open a PR; I merge into `main`.
+
+## Commands
+```bash
+sh scripts/link-user.sh --check                                            # user/ links intact
+python3 -m unittest discover tests && claude plugin validate plugins/oskiv  # check
+```
+
+## Where files go
+`docs/` holds the design (start at `docs/README.md`). `.claude/rules/placement.md` says where
+everything else goes. Scratch output goes in `.scratch/` (gitignored), never `/tmp`.
